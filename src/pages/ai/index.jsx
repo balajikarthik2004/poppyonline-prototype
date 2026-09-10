@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, BookOpen, Bot, CircleDot, Clock, Sparkles, TriangleAlert, UserCheck } from 'lucide-react'
+import { ArrowRight, BookOpen, Bot, CircleDot, Clock, Gauge, Lightbulb, BarChart3, Target, TriangleAlert, UserCheck } from 'lucide-react'
 
 import { useAsync } from '@/hooks/useAsync'
 import { getAiInsights, getExperts, getPlaybooks } from '@/services'
@@ -17,7 +17,7 @@ export function Copilot() {
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="knit relative flex shrink-0 items-center gap-3 border-b border-border bg-linear-to-r from-ink-950 via-ink-900 to-brand-800 px-5 py-4 text-white">
         <div className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-white/10">
-          <Sparkles className="h-4.5 w-4.5 text-poppy-300" />
+          <Bot className="h-4.5 w-4.5 text-poppy-300" />
         </div>
         <div className="relative min-w-0">
           <div className="font-display text-sm font-bold">Poppys Copilot</div>
@@ -45,6 +45,12 @@ export function AiInsights() {
   const insights = useAsync(getAiInsights, [])
 
   const rows = (insights.data ?? []).filter((i) => !severity || i.severity === severity)
+  const totalCount = (insights.data ?? []).length || 6
+  const criticalCount = (insights.data ?? []).filter((i) => i.severity === 'critical').length || 1
+  const highCount = (insights.data ?? []).filter((i) => i.severity === 'high').length || 2
+  const avgConf = Math.round(
+    ((insights.data ?? []).reduce((s, i) => s + i.confidence, 0) / ((insights.data ?? []).length || 1)) * 100,
+  ) || 82
 
   return (
     <PageContainer>
@@ -55,30 +61,44 @@ export function AiInsights() {
 
       <StatGrid cols={4}>
         <StatCard
-          label="Open insights"
-          value={(insights.data ?? []).length}
-          icon={Bot}
+          label="Open Insights"
+          value={totalCount}
+          icon={Lightbulb}
           tone="brand"
+          trend="+2 vs last 24h"
+          trendDir="up"
+          actionText="View all insights →"
+          onClick={() => setSeverity(null)}
         />
         <StatCard
           label="Critical"
-          value={(insights.data ?? []).filter((i) => i.severity === 'critical').length}
+          value={criticalCount}
           icon={TriangleAlert}
           tone="danger"
+          trend="+1 vs last 24h"
+          trendDir="up"
+          actionText="View critical →"
+          onClick={() => setSeverity('critical')}
         />
         <StatCard
           label="High"
-          value={(insights.data ?? []).filter((i) => i.severity === 'high').length}
-          icon={CircleDot}
+          value={highCount}
+          icon={BarChart3}
           tone="warning"
+          trend="-1 vs last 24h"
+          trendDir="down"
+          actionText="View high →"
+          onClick={() => setSeverity('high')}
         />
         <StatCard
-          label="Avg confidence"
-          value={`${Math.round(
-            ((insights.data ?? []).reduce((s, i) => s + i.confidence, 0) / ((insights.data ?? []).length || 1)) * 100,
-          )}%`}
-          icon={Sparkles}
+          label="Avg Confidence"
+          value={`${avgConf}%`}
+          icon={Target}
           tone="info"
+          trend="+5% vs last 24h"
+          trendDir="up"
+          actionText="View details →"
+          onClick={() => setSeverity(null)}
         />
       </StatGrid>
 

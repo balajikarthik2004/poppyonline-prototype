@@ -1,9 +1,9 @@
 import { makeRng } from '@/lib/random'
 import { buyers } from './buyers'
+import { generateDefaultBom } from '@/lib/master/bomLogic'
 
 /**
- * The style library. Segments and fabric constructions mirror the public
- * product menu and capability list; individual styles are illustrative.
+ * Garment Style Master with Multi-Level BOM & Version Revisions.
  */
 const rng = makeRng(4412)
 
@@ -42,6 +42,8 @@ const garmentsBySegment = {
 const finishes = ['Bio-wash', 'Enzyme wash', 'Softener finish', 'Peach finish', 'Anti-pill']
 const decorations = ['Placement print', 'Rotary print', 'Embroidery', 'Appliqué', 'Plain dyed', 'Yarn dyed stripe']
 const cottonProgrammes = ['BCI Cotton', 'Organic Cotton (GOTS)', 'Conventional Cotton', 'Cotton/Elastane', 'Cotton/Poly Blend']
+const yarnCounts = ['20s Ne Combed', '24s Ne Combed', '30s Ne Combed', '34s Ne Combed', '40s Ne Compact', '30/2 Ne Melange']
+
 const sizeSets = {
   adult: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
   kids: ['2-3Y', '3-4Y', '5-6Y', '7-8Y', '9-10Y', '11-12Y'],
@@ -56,12 +58,6 @@ function sizeSetFor(segment) {
 
 const seasons = ['SS26', 'AW26', 'SS27']
 
-/**
- * Segment weighting follows the public product galleries, where infants (22
- * images) and boys (12) carry far more styles than the adult categories (4
- * each). Home textiles sit with the group's separate Madeups division, so they
- * barely appear in this style library.
- */
 const segmentWeights = {
   Infants: 22,
   'Boys Wear': 12,
@@ -84,8 +80,10 @@ export const styles = Array.from({ length: 64 }, (_, i) => {
   const gsm = rng.int(120, 320)
   const fabricConsumptionKg = rng.float(0.12, 0.62, 3)
   const fobUsd = rng.float(2.1, 13.5, 2)
+  const yarnCount = rng.pick(yarnCounts)
+  const smv = rng.float(4.5, 28, 1)
 
-  return {
+  const partialStyle = {
     id: `STY-${String(i + 1).padStart(4, '0')}`,
     styleNo: `PK${String(2600 + i)}`,
     name: `${segment.replace(/'s Wear| Wear|s$/, '')} ${garment}`.replace(/\s+/g, ' ').trim(),
@@ -96,17 +94,82 @@ export const styles = Array.from({ length: 64 }, (_, i) => {
     season: rng.pick(seasons),
     fabric,
     gsm,
+    yarnCount,
     cottonProgramme: rng.pick(cottonProgrammes),
     finish: rng.pick(finishes),
     decoration: rng.pick(decorations),
     colours: rng.int(2, 8),
     sizes: sizeSetFor(segment),
     fabricConsumptionKg,
-    smv: rng.float(4.5, 28, 1),
+    smv,
     fobUsd,
+    targetQuantityPcs: rng.int(5000, 120000),
     status: rng.pick(['Active', 'Active', 'Active', 'Development', 'Discontinued']),
-    /** Approval gate a style must clear before bulk cutting is released. */
     approval: rng.pick(['Approved', 'Approved', 'Approved', 'Pending PP', 'Pending Fit']),
+    effectiveDate: '2026-01-15',
+    activeRevisionVersion: i % 3 === 0 ? 'v1.1' : i % 5 === 0 ? 'v2.0' : 'v1.0',
+  }
+
+  const defaultBom = generateDefaultBom(partialStyle)
+
+  const revisions = [
+    {
+      revisionId: `REV-${partialStyle.id}-v1_0`,
+      version: 'v1.0',
+      status: partialStyle.activeRevisionVersion === 'v1.0' ? 'Approved' : 'Superseded',
+      createdAt: '2026-01-10T10:00:00.000Z',
+      createdBy: 'Senior Merchandiser',
+      approvedBy: 'Dr. C. Sakthivel (MD)',
+      approvedAt: '2026-01-15T14:30:00.000Z',
+      effectiveDate: '2026-01-15',
+      changeReason: 'Initial baseline BOM sign-off for bulk order',
+      bom: defaultBom,
+    },
+  ]
+
+  if (partialStyle.activeRevisionVersion === 'v1.1') {
+    const updatedBom = JSON.parse(JSON.stringify(defaultBom))
+    updatedBom.fabric[0].consumptionKg = Math.round((fabricConsumptionKg - 0.015) * 1000) / 1000
+    revisions.push({
+      revisionId: `REV-${partialStyle.id}-v1_1`,
+      version: 'v1.1',
+      status: 'Approved',
+      createdAt: '2026-02-18T09:15:00.000Z',
+      createdBy: 'Senior Merchandiser',
+      approvedBy: 'S. Rajagopalan (GM Operations)',
+      approvedAt: '2026-02-20T11:45:00.000Z',
+      effectiveDate: '2026-02-22',
+      changeReason: 'Marker efficiency optimization reduced body fabric consumption by 15g',
+      bom: updatedBom,
+    })
+  } else if (partialStyle.activeRevisionVersion === 'v2.0') {
+    const v2Bom = JSON.parse(JSON.stringify(defaultBom))
+    v2Bom.trims.push({
+      id: 'TRM-06',
+      item: 'Organic Cotton Ribbon Drawcord',
+      spec: '15mm Flat Herringbone with Metal Tips',
+      uom: 'meters',
+      qtyPerGarment: 1.2,
+      supplierType: 'Trim Vendor',
+    })
+    revisions.push({
+      revisionId: `REV-${partialStyle.id}-v2_0`,
+      version: 'v2.0',
+      status: 'Draft',
+      createdAt: '2026-08-28T16:00:00.000Z',
+      createdBy: 'K. Priya Dharshini (Merchandiser)',
+      approvedBy: null,
+      approvedAt: null,
+      effectiveDate: '2026-09-25',
+      changeReason: 'Buyer requested upgraded drawcord with engraved tips for AW26 drop',
+      bom: v2Bom,
+    })
+  }
+
+  return {
+    ...partialStyle,
+    bom: revisions.find((r) => r.status === 'Approved')?.bom || defaultBom,
+    revisions,
   }
 })
 

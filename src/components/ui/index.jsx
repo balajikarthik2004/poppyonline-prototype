@@ -60,7 +60,7 @@ export function Button({ className, variant = 'default', size = 'md', ...props }
     <button
       type="button"
       className={cn(
-        'inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg font-medium transition-colors',
+        'inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg font-medium transition-colors cursor-pointer select-none',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50',
         'disabled:pointer-events-none disabled:opacity-45',
         buttonVariants[variant],
@@ -198,7 +198,7 @@ export function Select({ value, onValueChange, options, className, align = 'star
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          'flex h-8.5 w-full items-center justify-between gap-2 rounded-lg border border-input bg-card px-3 text-[13px] font-medium text-foreground transition-colors',
+          'flex h-8.5 w-full items-center justify-between gap-2 rounded-lg border border-input bg-card px-3 text-[13px] font-medium text-foreground transition-colors cursor-pointer',
           'hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
         )}
       >
@@ -224,7 +224,7 @@ export function Select({ value, onValueChange, options, className, align = 'star
                 setOpen(false)
               }}
               className={cn(
-                'flex w-full items-center justify-between gap-2 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-left text-[13px] transition-colors',
+                'flex w-full items-center justify-between gap-2 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-left text-[13px] transition-colors cursor-pointer',
                 option.value === value ? 'bg-accent font-semibold text-accent-foreground' : 'hover:bg-accent',
               )}
             >
@@ -315,6 +315,46 @@ export function Tabs({ tabs, value, onChange, className }) {
           {tab.label}
         </button>
       ))}
+    </div>
+  )
+}
+
+/* -------------------------------------------------------------- Modal ----- */
+
+export function Modal({ open, onClose, title, children, className }) {
+  useEffect(() => {
+    function onKeyDown(event) {
+      if (event.key === 'Escape') onClose?.()
+    }
+    if (open) document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [open, onClose])
+
+  if (!open) return null
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 bg-ink-950/50 backdrop-blur-xs transition-opacity" onClick={onClose} />
+      <div
+        className={cn(
+          'animate-fade-rise relative z-50 w-full max-w-lg overflow-hidden rounded-2xl border border-border bg-card shadow-2xl',
+          className,
+        )}
+      >
+        {title && (
+          <div className="flex items-center justify-between border-b border-border bg-slate-50/70 px-4 py-3">
+            <h3 className="text-sm font-bold text-foreground">{title}</h3>
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-lg p-1 text-muted-foreground hover:bg-slate-200/60 hover:text-foreground transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        )}
+        <div className="p-4">{children}</div>
+      </div>
     </div>
   )
 }

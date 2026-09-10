@@ -50,15 +50,63 @@ export function DataTable({
 
   if (isLoading) {
     return (
-      <div className="space-y-2">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <Skeleton key={i} className="h-10 w-full" />
-        ))}
+      <div className="space-y-3">
+        <div className="scrollbar-thin overflow-x-auto rounded-xl border border-border bg-card">
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-b border-border bg-secondary/60">
+                {columns.map((column) => (
+                  <th
+                    key={column.key}
+                    style={column.width ? { width: column.width } : undefined}
+                    className={cn(
+                      'whitespace-nowrap px-3.5 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground',
+                      column.align === 'right' && 'text-right',
+                      column.align === 'center' && 'text-center',
+                    )}
+                  >
+                    {column.header}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border/60">
+              {Array.from({ length: pageSize || 10 }).map((_, rowIndex) => (
+                <tr key={rowIndex} className="animate-pulse">
+                  {columns.map((col, colIndex) => (
+                    <td
+                      key={col.key || colIndex}
+                      className={cn(
+                        'whitespace-nowrap px-3.5 py-2.5 text-[13px]',
+                        col.align === 'right' && 'text-right',
+                        col.align === 'center' && 'text-center',
+                      )}
+                    >
+                      <Skeleton
+                        className={cn(
+                          'h-4 rounded bg-muted/60',
+                          col.align === 'right' ? 'ml-auto w-14' : col.align === 'center' ? 'mx-auto w-16' : 'w-24',
+                        )}
+                      />
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="flex h-8 items-center justify-between pt-1 pr-1 text-xs text-muted-foreground">
+          <Skeleton className="h-4 w-36 rounded" />
+          <div className="flex items-center gap-1.5">
+            <Skeleton className="h-7 w-7 rounded-lg" />
+            <Skeleton className="h-7 w-7 rounded-lg" />
+          </div>
+        </div>
       </div>
     )
   }
 
-  if (!data.length) return <EmptyState message={emptyMessage} />
+  if (!data?.length) return <EmptyState message={emptyMessage} />
 
   return (
     <div className="space-y-3">
@@ -135,12 +183,18 @@ export function DataTable({
         </table>
       </div>
 
-      {pageCount > 1 && (
-        <div className="flex items-center justify-between text-xs text-muted-foreground">
-          <span>
-            Page <span className="font-semibold text-foreground">{safePage + 1}</span> of {pageCount} -{' '}
-            {data.length} records
-          </span>
+      {/* Constant Height Footer Bar */}
+      <div className="flex h-8 items-center justify-between pt-1 pr-1 text-xs text-muted-foreground">
+        <span>
+          {pageCount > 1 ? (
+            <>
+              Page <span className="font-semibold text-foreground">{safePage + 1}</span> of {pageCount} · {data.length} records
+            </>
+          ) : (
+            <>Showing {data.length} records</>
+          )}
+        </span>
+        {pageCount > 1 && (
           <div className="flex items-center gap-1.5">
             <Button
               variant="outline"
@@ -161,8 +215,8 @@ export function DataTable({
               <ChevronRight className="h-3.5 w-3.5" />
             </Button>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }

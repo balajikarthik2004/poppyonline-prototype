@@ -15,27 +15,37 @@ const rng = makeRng(1145)
 /** Yarn store, rolled up from the lot register. */
 export const yarnStock = yarnLots
   .filter((l) => l.status !== 'Consumed')
-  .map((lot) => ({
-    id: lot.id,
-    lotNo: lot.lotNo,
-    item: `${lot.count} ${lot.blend}`,
-    count: lot.count,
-    blend: lot.blend,
-    supplierName: lot.supplierName,
-    location: lot.location,
-    balanceKg: lot.balanceKg,
-    valueInr: Math.round(lot.balanceKg * lot.rateInrPerKg),
-    ageDays: Math.round((Date.now() - new Date(lot.receivedAt).getTime()) / 86400000),
-    status: lot.status,
-    reorderLevelKg: 1200,
-  }))
+  .map((lot) => {
+    const dailyKnittingUsageKg = 280
+    const daysOfCover = Number((lot.balanceKg / dailyKnittingUsageKg).toFixed(1))
+    return {
+      id: lot.id,
+      lotNo: lot.lotNo,
+      item: `${lot.count} ${lot.blend}`,
+      count: lot.count,
+      blend: lot.blend,
+      supplierName: lot.supplierName,
+      location: lot.location,
+      balanceKg: lot.balanceKg,
+      valueInr: Math.round(lot.balanceKg * lot.rateInrPerKg),
+      ageDays: Math.round((Date.now() - new Date(lot.receivedAt).getTime()) / 86400000),
+      status: daysOfCover < 3 ? 'Low Stock' : lot.status,
+      reorderLevelKg: 1200,
+      daysOfCover,
+      openDemandKg: Math.round(lot.balanceKg * 1.15),
+    }
+  })
 
 const fabricStates = ['Greige', 'Dyed', 'Compacted', 'Printed']
+const shadeBands = ['Band A', 'Band B', 'Band C', 'Band D']
 
 export const fabricStock = Array.from({ length: 58 }, (_, i) => {
   const order = rng.pick(exportOrders)
   const quantityKg = rng.int(80, 3200)
   const state = rng.pick(fabricStates)
+  const pointsPer100SqYd = Number(rng.float(6, 32, 1))
+  const shadeBand = rng.pick(shadeBands)
+
   return {
     id: `FAB-${String(i + 1).padStart(4, '0')}`,
     rollBatch: `FB/${String(7100 + i)}`,
@@ -51,25 +61,41 @@ export const fabricStock = Array.from({ length: 58 }, (_, i) => {
     location: rng.pick(['Fabric Store 1', 'Fabric Store 2', 'Dye House Bay', 'Cutting Feed Rack']),
     receivedAt: subDays(new Date(), rng.int(0, 60)).toISOString(),
     shadeLot: `SH-${rng.int(100, 999)}`,
+    shadeBand,
+    pointsPer100SqYd,
+    grade: pointsPer100SqYd <= 28 ? 'Pass' : 'Review',
     status: rng.pick(['Available', 'Available', 'Available', 'Allocated', 'On Hold']),
   }
 })
 
+const bufferTransitions = [
+  'Cutting → Printing Buffer',
+  'Printing → Embroidery Buffer',
+  'Embroidery → Sewing Buffer',
+  'Sewing → Checking Buffer',
+  'Checking → Ironing & Packing Buffer',
+]
+
 /** WIP sitting between stages on the floor. */
-export const wipStock = processStages.slice(3).flatMap((stage) =>
+export const wipStock = processStages.slice(3).flatMap((stage, stageIdx) =>
   units.slice(0, 3).map((unit, i) => {
     const quantityPcs = rng.int(1800, 26000)
+    const ageDays = Number(rng.float(0.5, 8.5, 1))
+    const isAging = ageDays > 3.5
+
     return {
       id: `WIP-${stage.key}-${unit.id}-${i}`,
       stage: stage.label,
       stageKey: stage.key,
+      bufferName: bufferTransitions[stageIdx % bufferTransitions.length],
       unitId: unit.id,
       unitName: unit.shortName,
       quantityPcs,
       styles: rng.int(2, 11),
-      ageDays: rng.float(0.5, 9, 1),
+      ageDays,
       /** Anything sitting more than four days is a genuine flow problem. */
-      isAging: rng.bool(0.22),
+      isAging,
+      priority: isAging ? 'Rush' : 'Normal',
       valueUsd: Math.round(quantityPcs * rng.float(1.4, 7.5, 2)),
     }
   }),

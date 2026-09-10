@@ -11,8 +11,9 @@ import { buyerRegions } from '@/mock/buyers'
 import { PageContainer, PageHeader, StatCard, StatGrid, StatGridSkeleton, FilterChip, FilterChipGroup } from '@/components/common'
 import { DataTable, MiniBar, RiskBadge, StatusBadge } from '@/components/tables'
 import { Badge, Card, CardContent, CardHeader, CardTitle, Skeleton } from '@/components/ui'
+import { Am5DonutChart } from '@/components/charts/Am5DonutChart'
 import { formatDate, formatNumber, formatPct, formatUsd, formatUsdCompact } from '@/lib/format'
-import { chartTooltipStyle, colorAt } from '@/lib/chartColors'
+import { chartItemStyle, chartLabelStyle, chartTooltipStyle, colorAt } from '@/lib/chartColors'
 
 /* ============================================================== Buyers ==== */
 
@@ -289,39 +290,12 @@ export function OrderBook() {
             {summary.isLoading ? (
               <Skeleton className="h-56 w-full" />
             ) : (
-              <>
-                <div className="h-40 w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={regionSlices}
-                        dataKey="value"
-                        nameKey="name"
-                        innerRadius="60%"
-                        outerRadius="94%"
-                        paddingAngle={2}
-                        isAnimationActive={false}
-                      >
-                        {regionSlices.map((slice, i) => (
-                          <Cell key={slice.name} fill={colorAt(i)} stroke="hsl(var(--card))" />
-                        ))}
-                      </Pie>
-                      <Tooltip contentStyle={chartTooltipStyle} formatter={(v, n) => [formatUsdCompact(v), n]} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className="mt-2 space-y-1">
-                  {regionSlices.map((slice, i) => (
-                    <div key={slice.name} className="flex items-center justify-between text-xs">
-                      <span className="flex items-center gap-1.5">
-                        <span className="h-2 w-2 rounded-full" style={{ backgroundColor: colorAt(i) }} />
-                        <span className="font-medium text-foreground">{slice.name}</span>
-                      </span>
-                      <span className="tabular-nums text-muted-foreground">{formatUsdCompact(slice.value)}</span>
-                    </div>
-                  ))}
-                </div>
-              </>
+              <Am5DonutChart
+                data={regionSlices}
+                height={260}
+                innerRadius={55}
+                showLegend={true}
+              />
             )}
           </CardContent>
         </Card>

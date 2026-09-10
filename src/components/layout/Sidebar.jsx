@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
-import { ChevronDown, Sparkles } from 'lucide-react'
+import { ChevronDown, Leaf } from 'lucide-react'
 
 import { AI_SECTION_LABEL, navTree } from '@/lib/navigation'
 import { cn } from '@/lib/utils'
@@ -83,7 +83,7 @@ export function Sidebar({ onNavigate }) {
                 onClick={onNavigate}
                 className={({ isActive }) =>
                   cn(
-                    'group relative flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium text-ink-200 transition-colors',
+                    'group relative flex shrink-0 items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium text-ink-200 transition-colors',
                     'hover:bg-white/6 hover:text-white',
                     isActive && 'bg-white/10 font-semibold text-white',
                   )
@@ -92,7 +92,7 @@ export function Sidebar({ onNavigate }) {
                 {({ isActive }) => (
                   <>
                     {isActive && (
-                      <span className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-poppy-400" />
+                      <span className="absolute left-0 top-1/2 h-5 w-0.75 -translate-y-1/2 rounded-r-full bg-poppy-400" />
                     )}
                     <Icon
                       className={cn(
@@ -117,9 +117,9 @@ export function Sidebar({ onNavigate }) {
             <div
               key={section.label}
               className={cn(
-                'flex flex-col',
+                'flex shrink-0 flex-col',
                 isAi &&
-                  'ai-glow ai-sheen relative my-1.5 overflow-hidden rounded-xl bg-linear-to-br from-brand-500/25 via-brand-600/12 to-transparent p-1',
+                  'ai-glow ai-sheen relative my-1.5 shrink-0 overflow-hidden rounded-xl bg-linear-to-br from-brand-500/25 via-brand-600/12 to-transparent p-1',
               )}
             >
               <button
@@ -127,7 +127,7 @@ export function Sidebar({ onNavigate }) {
                 onClick={() => toggleSection(section.label)}
                 aria-expanded={isOpen}
                 className={cn(
-                  'group flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-[13px] font-medium text-ink-200 transition-colors',
+                  'group flex shrink-0 w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-[13px] font-medium text-ink-200 transition-colors',
                   'hover:bg-white/6 hover:text-white',
                   sectionIsActive && 'text-white',
                   isAi && 'font-semibold text-white',
@@ -155,7 +155,7 @@ export function Sidebar({ onNavigate }) {
               </button>
 
               {isOpen && (
-                <div className="mb-1 ml-[1.65rem] mt-0.5 flex flex-col gap-0.5 border-l border-white/10 pl-3">
+                <div className="mb-1 ml-[1.65rem] mt-0.5 flex shrink-0 flex-col gap-0.5 border-l border-white/10 pl-3">
                   {section.children.map((child) => (
                     <NavLink
                       key={child.path}
@@ -164,7 +164,7 @@ export function Sidebar({ onNavigate }) {
                       onClick={onNavigate}
                       className={({ isActive }) =>
                         cn(
-                          'relative rounded-md px-2.5 py-1.5 text-[12.5px] font-medium text-ink-300 transition-colors',
+                          'relative shrink-0 rounded-md px-2.5 py-1.5 text-[12.5px] font-medium text-ink-300 transition-colors',
                           'hover:bg-white/6 hover:text-white',
                           isActive && 'bg-brand-500/25 font-semibold text-white',
                         )
@@ -173,7 +173,7 @@ export function Sidebar({ onNavigate }) {
                       {({ isActive }) => (
                         <>
                           {isActive && (
-                            <span className="absolute -left-3 top-1/2 h-4 w-[2px] -translate-y-1/2 rounded-full bg-poppy-400" />
+                            <span className="absolute -left-3 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-full bg-poppy-400" />
                           )}
                           {child.label}
                         </>
@@ -191,7 +191,7 @@ export function Sidebar({ onNavigate }) {
       <div className="shrink-0 border-t border-white/8 px-4 py-3.5">
         <div className="flex items-center gap-2.5">
           <span className="flex h-7 w-7 items-center justify-center rounded-md bg-white/8 text-poppy-300">
-            <Sparkles className="h-3.5 w-3.5" />
+            <Leaf className="h-3.5 w-3.5" />
           </span>
           <div className="leading-tight">
             <div className="text-[12px] font-semibold text-white">Knit with conscience</div>

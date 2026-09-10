@@ -4,7 +4,7 @@ import { CalendarRange, ClipboardList, Gauge, Layers, TriangleAlert } from 'luci
 
 import { useAsync } from '@/hooks/useAsync'
 import { useAppStore } from '@/store/appStore'
-import { getCapacityPlan, getProductionOrders } from '@/services'
+import { getCapacityPlan, getMultiTierCapacity, getProductionOrders } from '@/services'
 import { PageContainer, PageHeader, StatCard, StatGrid, FilterChip, FilterChipGroup } from '@/components/common'
 import { DataTable, MiniBar, RiskBadge, StatusBadge } from '@/components/tables'
 import { Badge, Card, CardContent, CardHeader, CardTitle, Skeleton } from '@/components/ui'
@@ -251,6 +251,90 @@ export function CapacityPlanning() {
           />
         </CardContent>
       </Card>
+
+      {/* Multi-Tier Capacity Model */}
+      <MultiTierCapacitySection />
     </PageContainer>
+  )
+}
+
+function MultiTierCapacitySection() {
+  const multiTier = useAsync(getMultiTierCapacity, [])
+
+  return (
+    <Card className="border-brand-100">
+      <CardHeader>
+        <div>
+          <CardTitle className="flex items-center gap-2">
+            <Layers className="h-4.5 w-4.5 text-brand-600" />
+            Configurable Multi-Tier Capacity Model (9 Stages)
+          </CardTitle>
+          <p className="text-xs text-muted-foreground">
+            Differentiates Historical Website Baseline vs Rated vs Available vs Planned vs Actual Output
+          </p>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <DataTable
+          columns={[
+            { key: 'stageName', header: 'Stage', cell: (r) => <span className="font-medium text-foreground">{r.stageName}</span> },
+            { key: 'unitId', header: 'Unit', cell: (r) => <Badge variant="outline">{r.unitId}</Badge> },
+            { key: 'department', header: 'Department' },
+            {
+              key: 'historicalPublishedCapacity',
+              header: 'Published Ref',
+              align: 'right',
+              cell: (r) => `${formatNumber(r.historicalPublishedCapacity)} ${r.capacityUnit}`,
+            },
+            {
+              key: 'ratedCapacity',
+              header: 'Rated Capacity',
+              align: 'right',
+              cell: (r) => `${formatNumber(r.ratedCapacity)} ${r.capacityUnit}`,
+            },
+            {
+              key: 'availableCapacity',
+              header: 'Available',
+              align: 'right',
+              cell: (r) => `${formatNumber(r.availableCapacity)} ${r.capacityUnit}`,
+            },
+            {
+              key: 'plannedCapacity',
+              header: 'Planned',
+              align: 'right',
+              cell: (r) => `${formatNumber(r.plannedCapacity)} ${r.capacityUnit}`,
+            },
+            {
+              key: 'actualOutput',
+              header: 'Actual Output',
+              align: 'right',
+              cell: (r) => (
+                <span className="font-semibold text-brand-700">
+                  {formatNumber(r.actualOutput)} {r.capacityUnit}
+                </span>
+              ),
+            },
+            {
+              key: 'actualEfficiencyPct',
+              header: 'Actual Eff.',
+              align: 'right',
+              cell: (r) => `${r.actualEfficiencyPct}%`,
+            },
+            {
+              key: 'loadStatus',
+              header: 'Status',
+              cell: (r) => (
+                <Badge variant={r.loadStatus === 'Overloaded' ? 'danger' : r.loadStatus === 'Underloaded' ? 'warning' : 'success'}>
+                  {r.loadStatus}
+                </Badge>
+              ),
+            },
+          ]}
+          data={multiTier.data ?? []}
+          isLoading={multiTier.isLoading}
+          pageSize={10}
+        />
+      </CardContent>
+    </Card>
   )
 }

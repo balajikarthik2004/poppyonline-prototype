@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, Send, Sparkles } from 'lucide-react'
+import { ArrowRight, Bot, Send } from 'lucide-react'
 
 import { askCopilot } from '@/services'
 import { suggestedQuestions } from '@/mock'
@@ -34,7 +34,7 @@ function AnswerCard({ answer }) {
   return (
     <div className="max-w-2xl rounded-2xl rounded-tl-sm border border-border bg-card p-3.5 shadow-xs">
       <div className="flex items-start gap-2">
-        <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-poppy-500" />
+        <Bot className="mt-0.5 h-4 w-4 shrink-0 text-poppy-500" />
         <div className="min-w-0 flex-1">
           <p className="text-[13px] font-semibold leading-snug text-foreground">{answer.headline}</p>
           {answer.body && (

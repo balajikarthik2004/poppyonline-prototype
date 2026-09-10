@@ -6,8 +6,6 @@ import {
   CartesianGrid,
   Cell,
   Line,
-  Pie,
-  PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -29,6 +27,7 @@ import {
 
 import { useAsync } from '@/hooks/useAsync'
 import { useAppStore } from '@/store/appStore'
+import { Am5DonutChart } from '@/components/charts/Am5DonutChart'
 import {
   getActivities,
   getAlerts,
@@ -46,7 +45,7 @@ import { KpiCard } from '@/components/kpi'
 import { Card, CardContent, CardHeader, CardTitle, Skeleton, Badge, Progress } from '@/components/ui'
 import { PageContainer, StatCard, StatGrid, EmptyState } from '@/components/common'
 import { formatDate, formatNumber, formatPct, formatRelativeShort, formatUsdCompact } from '@/lib/format'
-import { axisTick, chartTooltipStyle, colorAt, statusColors } from '@/lib/chartColors'
+import { axisTick, chartItemStyle, chartLabelStyle, chartTooltipStyle, colorAt, statusColors } from '@/lib/chartColors'
 import { cn } from '@/lib/utils'
 
 function greeting() {
@@ -58,8 +57,8 @@ function greeting() {
 
 function GreetingHero() {
   return (
-    <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_auto]">
-      <div className="flex flex-col justify-center">
+    <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+      <div>
         <h1 className="text-2xl font-bold tracking-tight text-foreground">
           {greeting()}, {currentUser.name.split(' ')[0]}
         </h1>
@@ -67,15 +66,15 @@ function GreetingHero() {
           Here is where the order book, the floor and the stores stand today.
         </p>
       </div>
-      <div className="knit relative overflow-hidden rounded-xl bg-linear-to-br from-ink-900 via-ink-800 to-brand-800 px-5 py-4 text-white lg:min-w-[24rem]">
-        <div className="relative">
-          <div className="text-[11px] font-medium text-ink-200">{formatDate(new Date().toISOString(), 'EEE, d MMM yyyy')}</div>
-          <div className="font-display mt-1 text-sm font-bold uppercase tracking-wide">
-            Knit with conscience. Shipped with confidence.
-          </div>
-          <div className="mt-0.5 text-[11px] text-ink-200">
-            Knitwear exports from Tirupur since 1973 - 50+ countries
-          </div>
+      <div className="text-left sm:text-right">
+        <div className="text-xs font-semibold text-brand-700">
+          {formatDate(new Date().toISOString(), 'EEE, d MMM yyyy')}
+        </div>
+        <div className="font-display mt-0.5 text-xs font-bold uppercase tracking-wider text-foreground">
+          Knit with conscience. Shipped with confidence.
+        </div>
+        <div className="mt-0.5 text-[11px] font-medium text-muted-foreground">
+          Knitwear exports from Tirupur since 1973 · 50+ countries
         </div>
       </div>
     </div>
@@ -128,7 +127,7 @@ export default function ExecutiveDashboard() {
       {kpis.isLoading || !kpis.data ? (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
           {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-[7.5rem] w-full" />
+            <Skeleton key={i} className="h-30 w-full" />
           ))}
         </div>
       ) : (
@@ -174,6 +173,8 @@ export default function ExecutiveDashboard() {
                     <Tooltip
                       cursor={{ fill: 'hsl(var(--muted))', opacity: 0.5 }}
                       contentStyle={chartTooltipStyle}
+                      itemStyle={chartItemStyle}
+                      labelStyle={chartLabelStyle}
                       formatter={(value, name) => [formatNumber(value), name === 'output' ? 'Packed' : 'Capacity']}
                     />
                     <Bar dataKey="output" name="output" radius={[4, 4, 0, 0]} maxBarSize={38} fill={statusColors.brand} />
@@ -195,67 +196,30 @@ export default function ExecutiveDashboard() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Order Book by Segment</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle>Order Book by Segment</CardTitle>
+              <Link to="/sales/order-book" className="text-xs font-medium text-primary hover:underline">
+                View all
+              </Link>
+            </div>
             <p className="text-xs text-muted-foreground">Pieces on order across the product range</p>
           </CardHeader>
           <CardContent>
             {exportSummary.isLoading ? (
-              <Skeleton className="h-64 w-full" />
+              <Skeleton className="h-72 w-full" />
             ) : (
-              <div className="space-y-3">
-                <div className="relative h-40 w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={segmentSlices}
-                        dataKey="value"
-                        nameKey="name"
-                        innerRadius="62%"
-                        outerRadius="94%"
-                        paddingAngle={2}
-                        isAnimationActive={false}
-                      >
-                        {segmentSlices.map((slice, i) => (
-                          <Cell key={slice.name} fill={colorAt(i)} stroke="hsl(var(--card))" />
-                        ))}
-                      </Pie>
-                      <Tooltip
-                        contentStyle={chartTooltipStyle}
-                        formatter={(value, name) => [
-                          `${formatNumber(value)} pcs (${((value / segmentTotal) * 100).toFixed(1)}%)`,
-                          name,
-                        ]}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                      On order
-                    </span>
-                    <span className="num text-base font-bold text-foreground">
-                      {(segmentTotal / 1000).toFixed(0)}k
-                    </span>
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  {segmentSlices.map((slice, i) => (
-                    <button
-                      key={slice.name}
-                      type="button"
-                      onClick={() => navigate(`/sales/order-book?segment=${encodeURIComponent(slice.name)}`)}
-                      className="flex w-full items-center justify-between rounded-md px-1.5 py-1 text-xs transition-colors hover:bg-accent"
-                    >
-                      <span className="flex items-center gap-1.5">
-                        <span className="h-2 w-2 rounded-full" style={{ backgroundColor: colorAt(i) }} />
-                        <span className="font-medium text-foreground">{slice.name}</span>
-                      </span>
-                      <span className="tabular-nums text-muted-foreground">
-                        {formatNumber(slice.value)} pcs
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
+              <Am5DonutChart
+                data={segmentSlices.map((s) => ({
+                  category: s.name,
+                  value: s.value,
+                }))}
+                height={290}
+                innerRadius={55}
+                showLegend={true}
+                onSliceClick={(item) => {
+                  navigate(`/sales/order-book?segment=${encodeURIComponent(item.category || item.name)}`)
+                }}
+              />
             )}
           </CardContent>
         </Card>
@@ -412,29 +376,13 @@ export default function ExecutiveDashboard() {
               <Skeleton className="h-40 w-full" />
             ) : (
               <div className="space-y-3">
-                <div className="h-28 w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={energy.data.mix}
-                        dataKey="value"
-                        nameKey="name"
-                        innerRadius="58%"
-                        outerRadius="92%"
-                        paddingAngle={2}
-                        isAnimationActive={false}
-                      >
-                        {energy.data.mix.map((slice, i) => (
-                          <Cell key={slice.name} fill={colorAt(i)} stroke="hsl(var(--card))" />
-                        ))}
-                      </Pie>
-                      <Tooltip
-                        contentStyle={chartTooltipStyle}
-                        formatter={(value, name) => [`${formatNumber(value)} kWh`, name]}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
+                <Am5DonutChart
+                  data={energy.data.mix}
+                  height={150}
+                  innerRadius={55}
+                  showLegend={false}
+                  showCircularLabels={false}
+                />
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div className="rounded-md bg-success-50 px-2 py-1.5">
                     <div className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-success-700">
@@ -507,6 +455,8 @@ export default function ExecutiveDashboard() {
                   <Tooltip
                     cursor={{ fill: 'hsl(var(--muted))', opacity: 0.5 }}
                     contentStyle={chartTooltipStyle}
+                    itemStyle={chartItemStyle}
+                    labelStyle={chartLabelStyle}
                     formatter={(value) => [formatUsdCompact(value), 'Order value']}
                   />
                   <Bar dataKey="valueUsd" radius={[0, 4, 4, 0]} maxBarSize={26}>
@@ -521,7 +471,8 @@ export default function ExecutiveDashboard() {
         </Card>
       )}
 
-      {/* Alerts + activity */}
+      {/* Alerts + activity (Temporarily commented out) */}
+      {/*
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
@@ -603,7 +554,10 @@ export default function ExecutiveDashboard() {
           </CardContent>
         </Card>
       </div>
+      */}
 
+      {/* Company footer stats (Temporarily commented out) */}
+      {/*
       <StatGrid cols={4}>
         <StatCard
           label="Group turnover"
@@ -631,6 +585,7 @@ export default function ExecutiveDashboard() {
           to="/compliance"
         />
       </StatGrid>
+      */}
     </PageContainer>
   )
 }

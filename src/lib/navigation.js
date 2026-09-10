@@ -133,7 +133,7 @@ export const navTree = [
     ],
   },
   { label: 'Energy & Utilities', icon: Zap, path: '/energy' },
-  { label: 'Compliance & CSR', icon: Leaf, path: '/compliance' },
+  // { label: 'Compliance & CSR', icon: Leaf, path: '/compliance' },
   {
     label: 'Master Data',
     icon: Gauge,
@@ -143,6 +143,8 @@ export const navTree = [
       { label: 'Suppliers', path: '/master/suppliers' },
       { label: 'Machines', path: '/master/machines' },
       { label: 'Yarn Lots', path: '/master/yarn-lots' },
+      { label: 'Defect Taxonomy', path: '/master/defects' },
+      { label: 'Ports & Logistics', path: '/master/ports' },
     ],
   },
   { label: 'Administration', icon: Settings, path: '/admin' },
