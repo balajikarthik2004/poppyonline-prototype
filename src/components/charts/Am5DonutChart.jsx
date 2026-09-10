@@ -8,7 +8,7 @@ import am5themes_Animated from '@amcharts/amcharts5/themes/Animated'
  * Implements smooth animated circular labels, interactive lifting slice states,
  * and optional integrated legend.
  */
-export function Am5DonutChart({
+function Am5DonutChartComponent({
   data = [],
   valueField = 'value',
   categoryField = 'category',
@@ -198,3 +198,16 @@ export function Am5DonutChart({
     />
   )
 }
+
+export const Am5DonutChart = React.memo(Am5DonutChartComponent, (prev, next) => {
+  if (prev.data !== next.data) {
+    if (JSON.stringify(prev.data) !== JSON.stringify(next.data)) return false
+  }
+  return (
+    prev.height === next.height &&
+    prev.innerRadius === next.innerRadius &&
+    prev.showLegend === next.showLegend &&
+    prev.className === next.className &&
+    prev.colors === next.colors
+  )
+})

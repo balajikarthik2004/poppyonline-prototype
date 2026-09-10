@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { Bot, Maximize2, X } from 'lucide-react'
 
@@ -7,6 +7,31 @@ import { AiChat } from './AiChat'
 /** The floating copilot: a docked panel on every page except /ai itself. */
 export function CopilotLauncher() {
   const [open, setOpen] = useState(false)
+  const panelRef = useRef(null)
+
+  useEffect(() => {
+    if (!open) return
+
+    function handleClickOutside(event) {
+      if (panelRef.current && !panelRef.current.contains(event.target)) {
+        setOpen(false)
+      }
+    }
+
+    function handleKeyDown(event) {
+      if (event.key === 'Escape') {
+        setOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    document.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [open])
 
   if (!open) {
     return (
@@ -41,7 +66,10 @@ export function CopilotLauncher() {
   }
 
   return (
-    <div className="animate-fade-rise fixed bottom-5 right-5 z-40 flex h-128 w-[min(24rem,calc(100vw-2.5rem))] flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-2xl">
+    <div
+      ref={panelRef}
+      className="animate-fade-rise fixed bottom-5 right-5 z-40 flex h-128 w-[min(24rem,calc(100vw-2.5rem))] flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-2xl"
+    >
       <div className="flex shrink-0 items-center gap-2 border-b border-border bg-linear-to-r from-ink-900 to-brand-800 px-3.5 py-2.5 text-white">
         <Bot className="h-4 w-4 text-poppy-300" />
         <span className="flex-1 font-display text-[13px] font-semibold">Poppys AI Agent</span>

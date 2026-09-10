@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Inbox } from 'lucide-react'
+import { Inbox, Info } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 import { Card, Skeleton } from '@/components/ui'
@@ -253,17 +253,22 @@ export function PageContainer({ children, className }) {
 
 /* ------------------------------------------------------------ InfoBanner -- */
 
-export function InfoBanner({ title, children, className }) {
+export function InfoBanner({ title, children, className, icon: Icon = Info }) {
   return (
     <div
       className={cn(
-        'knit relative overflow-hidden rounded-xl bg-linear-to-br from-ink-900 via-ink-800 to-brand-900 px-5 py-4 text-white',
+        'relative overflow-hidden rounded-xl border border-brand-200/90 bg-linear-to-r from-brand-50/90 via-indigo-50/60 to-slate-50 p-4 shadow-xs text-foreground',
         className,
       )}
     >
-      <div className="relative">
-        {title && <div className="font-display text-sm font-bold tracking-wide">{title}</div>}
-        <div className="mt-1 text-[13px] leading-relaxed text-ink-100">{children}</div>
+      <div className="flex items-start gap-3">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-600 text-white shadow-xs">
+          <Icon className="h-4 w-4" />
+        </div>
+        <div className="min-w-0 flex-1">
+          {title && <div className="text-[13.5px] font-bold tracking-tight text-brand-950">{title}</div>}
+          <div className="mt-1 text-xs font-medium leading-relaxed text-slate-700">{children}</div>
+        </div>
       </div>
     </div>
   )

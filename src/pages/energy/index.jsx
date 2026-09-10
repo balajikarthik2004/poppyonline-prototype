@@ -191,6 +191,7 @@ export function EnergyDashboard() {
                     height={260}
                     innerRadius={55}
                     showLegend={true}
+                    colors={['#0284c7', '#0d9488', '#10b981', '#f59e0b']}
                   />
                 )}
               </CardContent>

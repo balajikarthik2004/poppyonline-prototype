@@ -110,7 +110,7 @@ export function SegmentedPillDonut({
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
           {activeSegment ? (
             <>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-primary truncate max-w-[110px]">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-primary truncate max-w-27.5">
                 {activeSegment.name}
               </span>
               <span className="num text-2xl font-black tracking-tight text-foreground">

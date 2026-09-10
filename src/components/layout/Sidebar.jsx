@@ -61,12 +61,16 @@ export function Sidebar({ onNavigate }) {
   return (
     <aside className="relative z-20 flex h-full w-64 shrink-0 flex-col bg-linear-to-b from-ink-950 via-ink-900 to-ink-950 text-ink-100">
       {/* Brand */}
-      <div className="relative flex h-16 shrink-0 items-center gap-3 border-b border-white/8 px-5">
+      <div className="relative flex h-17 shrink-0 items-center justify-between border-b border-white/8 px-4">
         <div className="knit pointer-events-none absolute inset-0 opacity-60" />
-        <BrandMark className="relative h-9 w-9 shrink-0" />
-        <div className="relative min-w-0 leading-tight">
-          <div className="font-display text-[13px] font-bold tracking-wide text-white">POPPYS KNITWEAR</div>
-          <div className="truncate text-[10px] font-medium text-poppy-300">Tirupur - since 1973</div>
+        <div className="relative flex items-center gap-3 w-full">
+          <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white p-1 shadow-md ring-2 ring-white/20 overflow-hidden">
+            <img src="/sidebar-logo.png" alt="Poppys Knitwear" className="h-full w-full object-contain hover:scale-105 transition-transform" />
+          </div>
+          <div className="min-w-0 leading-tight">
+            <div className="font-display text-[13px] font-bold tracking-wider text-white uppercase truncate">POPPYS ONLINE ERP</div>
+            <div className="truncate text-[10.5px] font-medium text-lime-400">Tirupur · Since 1973</div>
+          </div>
         </div>
       </div>
 

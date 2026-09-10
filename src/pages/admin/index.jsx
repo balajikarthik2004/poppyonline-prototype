@@ -14,6 +14,7 @@ import {
   FileCheck,
   FileText,
   Filter,
+  GitBranch,
   Globe,
   KeyRound,
   Layers,
