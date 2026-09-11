@@ -23,7 +23,7 @@ let auditSequence = 10482
  * Creates a structured audit event.
  */
 export function createAuditEvent({
-  user = 'Sakthivel',
+  user = 'Vicky',
   role = 'MD',
   action = 'Updated',
   entity = 'AQL-24018',

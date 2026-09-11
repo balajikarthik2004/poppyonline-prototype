@@ -9,7 +9,7 @@ export const PERSONAS = [
   {
     key: 'MD',
     title: 'Managing Director',
-    name: 'Sakthivel',
+    name: 'Vicky',
     department: 'Executive Board',
     badge: 'Executive',
     tone: 'brand',

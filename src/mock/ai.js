@@ -392,24 +392,186 @@ export const experts = [
 
 /** Canned copilot exchanges - deterministic, grounded in the mock dataset. */
 export const suggestedQuestions = [
-  'Which orders are at risk this week?',
+  'Which machine is down and how long will it take to fix?',
+  'Which sales orders are at risk and what do we do about them?',
+  'Why did production fall short this week and how do we recover it?',
+  'What is driving the quality deviations in the lab results?',
   'What is holding up the Mothercare programme?',
   'Show me yarn below reorder level',
-  'Which sewing line is underperforming?',
-  'How is the dye house tracking against energy target?',
-  'What failed the final AQL audit recently?',
 ]
 
 export function answerFor(question) {
   const q = question.toLowerCase()
 
-  if (q.includes('risk') || q.includes('delay') || q.includes('late')) {
+  if (q.includes('machine') || q.includes('down') || q.includes('fix') || q.includes('rf-014') || q.includes('breakdown') || q.includes('br-001')) {
+    return {
+      headline: '4 machines are in breakdown across the plant',
+      confidence: '82% confidence',
+      body: '4 assets are down — BR-001, CD-001, CD-002, CB-005, with fleet OEE at 83.0% across the running machines. 7 PM tasks are overdue and 7 spare lines are below reorder — the combination that turns a stoppage into a long one.',
+      fleetPosition: {
+        title: 'Fleet position',
+        kpis: [
+          { label: 'IN BREAKDOWN', value: '4', tone: 'danger' },
+          { label: 'UNDER MAINTENANCE', value: '6', tone: 'warning' },
+          { label: 'RUNNING', value: '39', tone: 'success' },
+          { label: 'AVG OEE (RUNNING)', value: '83.0%', tone: 'brand' },
+        ],
+      },
+      table: {
+        title: 'Open breakdowns',
+        columns: ['MACHINE', 'UNIT', 'REPORTED CAUSE', 'SINCE', 'STATUS'],
+        rows: [
+          ['BR-001', 'Spinning Mill I — Kappalur', 'Suction pressure drop', '3d ago', 'Open'],
+          ['CD-001', 'Spinning Mill I — Kappalur', 'Suction pressure drop', '3d ago', 'Open'],
+          ['CD-002', 'Spinning Mill I — Kappalur', 'Card wire damage', '3d ago', 'Open'],
+          ['CB-005', 'Spinning Mill II — Nilakottai', 'Comber nipper misalignment', '2d ago', 'Open'],
+        ],
+        highlightFirstCol: true,
+      },
+      probableCauses: {
+        title: 'Probable causes, ranked',
+        subtitle: 'ranked by likelihood against the evidence',
+        items: [
+          {
+            rank: 1,
+            title: 'Choked filter drum reducing suction head',
+            likelihood: 54,
+            subtext: 'Filter cleaning intervals extended in every matched case.',
+            tag: 'Suction weakest at the far end of the frame',
+            tone: 'danger',
+          },
+          {
+            rank: 2,
+            title: 'Split duct joint bleeding pressure downstream',
+            likelihood: 32,
+            subtext: 'Perished gaskets found on inspection in comparable cases.',
+            tone: 'warning',
+          },
+        ],
+      },
+      linkTo: '/maintenance',
+      linkLabel: 'Open machine maintenance log',
+    }
+  }
+
+  if (q.includes('production fall short') || q.includes('short this week') || q.includes('recover') || q.includes('underperforming')) {
+    return {
+      headline: 'Weekly sewing output is 4,200 pcs (-5.8%) below budget across Unit 1 and Unit 2',
+      confidence: '89% confidence',
+      body: 'Shortfall is concentrated on 3 sewing lines. Greige lot approval delays on 26AW-W-1042 and operator learning curves on new silhouette changes are the primary bottlenecks. Recovery plan requires targeted weekend overtime.',
+      fleetPosition: {
+        title: 'Production health',
+        kpis: [
+          { label: 'WEEKLY TARGET', value: '72,000 pcs', tone: 'brand' },
+          { label: 'ACTUAL OUTPUT', value: '67,800 pcs', tone: 'warning' },
+          { label: 'VARIANCE', value: '-4,200 pcs', tone: 'danger' },
+          { label: 'ACTIVE LINES', value: '36 Lines', tone: 'success' },
+        ],
+      },
+      table: {
+        title: 'Underperforming sewing lines',
+        columns: ['LINE', 'UNIT', 'STYLE NO', 'EFFICIENCY', 'RECOVERY ACTION'],
+        rows: [
+          ['Line 04', 'Unit 1 — Sewing', '26AW-W-1042', '52.4%', '2.5h OT Shift (Sat)'],
+          ['Line 07', 'Unit 1 — Sewing', '26AW-M-2087', '56.8%', 'Add floater operator'],
+          ['Line 11', 'Unit 2 — Sewing', '26AW-B-3014', '58.1%', 'Line balancing fix'],
+        ],
+        highlightFirstCol: true,
+      },
+      probableCauses: {
+        title: 'Probable causes, ranked',
+        subtitle: 'ranked by root cause analysis',
+        items: [
+          {
+            rank: 1,
+            title: 'Greige fabric lot shade approval delay',
+            likelihood: 62,
+            subtext: 'Lot #2891 held in lab inspection caused 4.5 hours idle sewing time.',
+            tag: 'Affects Unit 1 Lines 4 & 7',
+            tone: 'danger',
+          },
+          {
+            rank: 2,
+            title: 'Needle changeover and operator curve on new style',
+            likelihood: 28,
+            subtext: 'First-time run of modal tiered dress with high SMV variance.',
+            tone: 'warning',
+          },
+        ],
+      },
+      linkTo: '/planning/production-orders',
+      linkLabel: 'Open production recovery plan',
+    }
+  }
+
+  if (q.includes('quality') || q.includes('deviation') || q.includes('lab') || q.includes('test') || q.includes('aql')) {
+    return {
+      headline: 'Rubbing fastness and shade deviations detected in 2 dyeing lots',
+      confidence: '94% confidence',
+      body: 'Colorfastness to rubbing (dry/wet) showed Grade 3.0 deviation in Navy Blue Lot #2891. Standard requires Grade 4.0. Upstream reduction clearing post-dyeing in Jet Machine #3 was incomplete.',
+      fleetPosition: {
+        title: 'Lab Quality status',
+        kpis: [
+          { label: 'TESTS CONDUCTED', value: '48 Lots', tone: 'brand' },
+          { label: 'PASSED 1ST PASS', value: '44 Lots', tone: 'success' },
+          { label: 'FLAGGED DEVIATIONS', value: '4 Lots', tone: 'danger' },
+          { label: 'AVG AQL PASS', value: '98.4%', tone: 'brand' },
+        ],
+      },
+      table: {
+        title: 'Lab deviations summary',
+        columns: ['LAB TEST', 'FABRIC LOT', 'REQUIRED', 'ACTUAL', 'ACTION'],
+        rows: [
+          ['Dry Rubbing Fastness', 'Lot #2891 (Navy Single Jersey)', 'Grade 4.0', 'Grade 3.0', 'Re-wash Recipe'],
+          ['Wet Rubbing Fastness', 'Lot #2891 (Navy Single Jersey)', 'Grade 3-4', 'Grade 2.5', 'Chemical Adjust'],
+          ['Dimensional Stability', 'Lot #2894 (White Rib 1x1)', '± 4.0%', '-4.8%', 'Compacting Adjust'],
+        ],
+        highlightFirstCol: true,
+      },
+      probableCauses: {
+        title: 'Probable causes, ranked',
+        subtitle: 'ranked by chemical & thermodynamic analysis',
+        items: [
+          {
+            rank: 1,
+            title: 'Insufficient reduction clearing cycle time',
+            likelihood: 68,
+            subtext: 'Dyeing cycle terminated 8 minutes early during night shift.',
+            tag: 'Jet Dyeing Machine #3',
+            tone: 'danger',
+          },
+          {
+            rank: 2,
+            title: 'Dyestuff dispersion agglomeration from hard water spike',
+            likelihood: 22,
+            subtext: 'Softener tank 2 calcium hardness briefly spiked to 45 ppm.',
+            tone: 'warning',
+          },
+        ],
+      },
+      linkTo: '/quality/lab',
+      linkLabel: 'Open laboratory test register',
+    }
+  }
+
+  if (q.includes('risk') || q.includes('delay') || q.includes('late') || q.includes('sales order') || q.includes('so-291')) {
     const rows = [...delayed, ...atRisk].slice(0, 5)
     return {
-      headline: `${delayed.length} orders are past their ship window and ${atRisk.length} more are tracking behind.`,
-      body: 'Delivery risk is concentrated in the styles below. Completion is measured against a 45-day confirmation-to-ship cycle.',
+      headline: `${delayed.length} sales orders are past ship window and ${atRisk.length} require immediate recovery`,
+      confidence: '91% confidence',
+      body: 'Delivery risk is concentrated across European retail programmes. Cutting approvals and air-freight splitting are ready for executive authorization.',
+      fleetPosition: {
+        title: 'Order book health',
+        kpis: [
+          { label: 'CONFIRMED ORDERS', value: '64', tone: 'brand' },
+          { label: 'ON TRACK', value: '52', tone: 'success' },
+          { label: 'AT RISK', value: `${atRisk.length}`, tone: 'warning' },
+          { label: 'PAST WINDOW', value: `${delayed.length}`, tone: 'danger' },
+        ],
+      },
       table: {
-        columns: ['Order', 'Buyer', 'Style', 'Complete', 'Ship in'],
+        title: 'High-risk sales orders',
+        columns: ['ORDER', 'BUYER', 'STYLE', 'COMPLETE', 'SHIP IN'],
         rows: rows.map((o) => [
           o.orderNo,
           o.buyerName,
@@ -417,6 +579,28 @@ export function answerFor(question) {
           `${o.completionPct.toFixed(0)}%`,
           `${o.daysToShip}d`,
         ]),
+        highlightFirstCol: true,
+      },
+      probableCauses: {
+        title: 'Probable causes, ranked',
+        subtitle: 'ranked by stage bottleneck diagnosis',
+        items: [
+          {
+            rank: 1,
+            title: 'Accessory / trim approval delay from buyer',
+            likelihood: 58,
+            subtext: 'Eco-button batch customs clearance delayed by 4 business days.',
+            tag: 'Affects Mothercare programme',
+            tone: 'danger',
+          },
+          {
+            rank: 2,
+            title: 'Knitting greige queue backlog in Unit 1',
+            likelihood: 34,
+            subtext: 'Yarn count 30s combed stockout forced re-scheduling.',
+            tone: 'warning',
+          },
+        ],
       },
       linkTo: '/sales/export-orders?risk=high',
       linkLabel: 'Open the at-risk order list',
@@ -425,57 +609,60 @@ export function answerFor(question) {
 
   if (q.includes('yarn') || q.includes('reorder') || q.includes('stock')) {
     return {
-      headline: 'Yarn cover is thin on a handful of counts.',
-      body: 'Counts below their reorder level cannot support the current knitting programme for more than two days. Procurement has open requisitions against most of them.',
+      headline: 'Yarn cover is thin on 4 critical counts with less than 2 days floor cover',
+      confidence: '88% confidence',
+      body: 'Counts below their reorder level cannot support the current knitting programme past Thursday. Procurement has open purchase orders with spinning mills.',
+      fleetPosition: {
+        title: 'Yarn warehouse status',
+        kpis: [
+          { label: 'TOTAL IN STOCK', value: '42.5 Tons', tone: 'brand' },
+          { label: 'BELOW REORDER', value: '4 Counts', tone: 'danger' },
+          { label: 'ON ORDER', value: '18.0 Tons', tone: 'warning' },
+          { label: 'FLOOR COVER', value: '4.2 Days', tone: 'success' },
+        ],
+      },
+      table: {
+        title: 'Critical yarn stock alert',
+        columns: ['COUNT', 'TYPE', 'STOCK (KG)', 'MIN REORDER', 'SUPPLIER'],
+        rows: [
+          ['30s Combed Compact', '100% Cotton', '1,240 kg', '3,000 kg', 'Vardhman Mills'],
+          ['34s Modal', 'Micro Modal', '850 kg', '2,000 kg', 'Lenzing India'],
+          ['40s Combed', 'Organic GOTS', '1,100 kg', '2,500 kg', 'Nahar Spinning'],
+        ],
+        highlightFirstCol: true,
+      },
+      probableCauses: {
+        title: 'Probable causes, ranked',
+        subtitle: 'ranked by inventory depletion velocity',
+        items: [
+          {
+            rank: 1,
+            title: 'Sudden demand surge in 26AW modal range',
+            likelihood: 64,
+            subtext: 'Weekly consumption rose by 45% following breakout commercial orders.',
+            tag: '34s Modal Count',
+            tone: 'danger',
+          },
+        ],
+      },
       linkTo: '/inventory/yarn',
       linkLabel: 'Open the yarn store',
     }
   }
 
-  if (q.includes('line') || q.includes('efficiency') || q.includes('sewing')) {
-    const worst = [...sewingLines].sort((a, b) => a.efficiencyPct - b.efficiencyPct).slice(0, 5)
-    return {
-      headline: `${weakLines.length} lines are running below 60% efficiency.`,
-      body: 'Most of the loss sits on lines that changed style in the last two days, which is a learning-curve effect rather than a machine fault.',
-      table: {
-        columns: ['Line', 'Unit', 'Style', 'Efficiency', 'DHU'],
-        rows: worst.map((l) => [l.name, l.unitName, l.styleNo, `${l.efficiencyPct}%`, `${l.dhuPct}%`]),
-      },
-      linkTo: '/ai/shop-floor',
-      linkLabel: 'Open the shop floor board',
-    }
-  }
-
-  if (q.includes('energy') || q.includes('dye house') || q.includes('kwh') || q.includes('water')) {
-    return {
-      headline: 'The dye house is the swing factor on group energy intensity.',
-      body: 'Processing accounts for roughly two fifths of group consumption. Intensity has been drifting above the 6.4 kWh/kg target, largely from wash-downs between shade changes.',
-      linkTo: '/energy',
-      linkLabel: 'Open energy and utilities',
-    }
-  }
-
-  if (q.includes('aql') || q.includes('quality') || q.includes('audit') || q.includes('defect')) {
-    return {
-      headline: 'Final audit performance is holding, but inline DHU is the leading indicator to watch.',
-      body: 'Failures cluster on measurement and shade rather than workmanship, which usually points upstream to the dye house and the cutting marker rather than to the sewing floor.',
-      linkTo: '/quality/aql',
-      linkLabel: 'Open the final AQL register',
-    }
-  }
-
-  if (q.includes('mothercare') || q.includes('buyer') || q.includes('marks')) {
-    return {
-      headline: 'Buyer programmes are tracked order by order on the export order book.',
-      body: 'Filter the order book by buyer to see every live style, its stage on the route and its ship window in one view.',
-      linkTo: '/sales/buyers',
-      linkLabel: 'Open the buyer list',
-    }
-  }
-
   return {
     headline: 'I can answer from the live order book, production route, quality register and stores.',
-    body: 'Try asking about delivery risk, yarn cover, line efficiency, energy intensity or audit performance. Every answer links through to the module that owns the data.',
+    confidence: '85% confidence',
+    body: 'Try asking about delivery risk, machine status (RF-014, BR-001), line efficiency, quality lab tests or yarn stock. Every answer links through to the module that owns the data.',
+    fleetPosition: {
+      title: 'Plant overview',
+      kpis: [
+        { label: 'OPERATING UNITS', value: '3 Units', tone: 'brand' },
+        { label: 'ACTIVE MACHINES', value: '49', tone: 'success' },
+        { label: 'EXPORT ORDERS', value: '64', tone: 'brand' },
+        { label: 'SYSTEM DHU', value: '2.4%', tone: 'success' },
+      ],
+    },
     linkTo: '/ai/insights',
     linkLabel: 'Browse insights and anomalies',
   }

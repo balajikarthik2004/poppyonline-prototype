@@ -55,6 +55,7 @@ import { currentUser } from '@/mock'
 import { KpiCard } from '@/components/kpi'
 import { Card, CardContent, CardHeader, CardTitle, Skeleton, Badge, Progress } from '@/components/ui'
 import { PageContainer, StatCard, StatGrid, EmptyState } from '@/components/common'
+import { DemandProductionIntelligence } from '@/components/dashboard/DemandProductionIntelligence'
 import { formatDate, formatInrCompact, formatNumber, formatPct, formatRelativeShort, formatUsdCompact } from '@/lib/format'
 import { axisTick, chartItemStyle, chartLabelStyle, chartTooltipStyle, colorAt, statusColors } from '@/lib/chartColors'
 import { cn } from '@/lib/utils'
@@ -487,6 +488,9 @@ export default function ExecutiveDashboard() {
           )}
         </CardContent>
       </Card>
+
+      {/* Demand & Production Intelligence Section */}
+      <DemandProductionIntelligence />
 
       {/* Inventory / maintenance / energy */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">

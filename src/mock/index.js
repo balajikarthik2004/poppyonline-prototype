@@ -28,3 +28,6 @@ export * from './roles'
 export * from './permissions'
 export * from './auditLogs'
 export * from './systemHealth'
+export * from './intelligence'
+export * from './planning'
+
