@@ -19,6 +19,12 @@ import {
   Wrench,
   X,
 } from 'lucide-react'
+import {
+  PoppysMaintenanceIcon,
+  PoppysBreakdownIcon,
+  PoppysPmIcon,
+  PoppysSparePartsIcon,
+} from '@/components/icons'
 
 import { useAsync } from '@/hooks/useAsync'
 import { useAppStore } from '@/store/appStore'
@@ -63,6 +69,7 @@ export function MachineDashboard() {
   return (
     <PageContainer>
       <PageHeader
+        icon={PoppysMaintenanceIcon}
         title="Asset Care & TPM Command Center"
         description="Overall Equipment Effectiveness (OEE), live fleet health matrix, and risk mitigation across all 9 manufacturing stages."
         actions={
@@ -323,6 +330,7 @@ export function Breakdowns() {
   return (
     <PageContainer>
       <PageHeader
+        icon={PoppysBreakdownIcon}
         title="Breakdown Incident & Dispatch Hub"
         description="End-to-end breakdown lifecycle: Triage → Machine Isolation → Diagnosis → Spare Parts Issue → Repair → Test Run Release."
         actions={
@@ -688,8 +696,9 @@ export function PmSchedule() {
   return (
     <PageContainer>
       <PageHeader
-        title="Preventive Maintenance & Calibration Engine"
-        description="Execution system with mandatory digital inspection checklists, technician sign-offs, and compliance auditing."
+        icon={PoppysPmIcon}
+        title="Preventive Maintenance Schedule & Digital PM Logs"
+        description="Total Productive Maintenance (TPM) checklists covering electrical, mechanical, pneumatic and calibration checks across all stages."
       />
 
       <StatGrid cols={4}>
@@ -944,8 +953,9 @@ export function SpareParts() {
   return (
     <PageContainer>
       <PageHeader
-        title="Critical Spare Parts & Reorder Intelligence"
-        description="Safety buffer monitoring, consumption tracking, and automatic Purchase Requisition (PR) triggers."
+        icon={PoppysSparePartsIcon}
+        title="Critical Spare Parts & Spares Stock Matrix"
+        description="Critical spares inventory, minimum stock thresholds, fast-moving consumption rates, and real-time replenishment lead times."
       />
 
       <StatGrid cols={4}>

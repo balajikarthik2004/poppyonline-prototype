@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 import { Globe, Package, Ship, Timer, TrendingUp, Users } from 'lucide-react'
+import { PoppysSalesIcon, PoppysBuyerIcon, PoppysExportOrdersIcon, PoppysShippingIcon, PoppysPlanningIcon } from '@/components/icons'
 
 import { useAsync } from '@/hooks/useAsync'
 import { useAppStore } from '@/store/appStore'
@@ -62,6 +63,7 @@ export function Buyers() {
   return (
     <PageContainer>
       <PageHeader
+        icon={PoppysBuyerIcon}
         title="Buyers"
         description="The export customer book. Marks & Spencer, Next, Tesco, Waitrose, Mothercare, Debenhams and John Lewis are the anchor accounts."
       />
@@ -182,6 +184,7 @@ export function ExportOrders() {
   return (
     <PageContainer>
       <PageHeader
+        icon={PoppysExportOrdersIcon}
         title="Export Orders"
         description="Every live order with its position on the production route and its ship window."
       />
@@ -261,6 +264,7 @@ export function OrderBook() {
   return (
     <PageContainer>
       <PageHeader
+        icon={PoppysPlanningIcon}
         title="Order Book"
         description="The commercial view of the same orders: value by region, by season and by product segment."
       />
@@ -403,8 +407,9 @@ export function Shipments() {
   return (
     <PageContainer>
       <PageHeader
+        icon={PoppysShippingIcon}
         title="Shipments"
-        description="Container bookings out of Tuticorin, Chennai, Cochin and Nhava Sheva, with export documentation status."
+        description="Container bookings, stuffing status, port departures and on-water tracking across the global shipping lanes."
       />
 
       <StatGrid cols={5}>

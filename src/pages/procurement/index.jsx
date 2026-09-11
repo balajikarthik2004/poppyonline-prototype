@@ -2,6 +2,13 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { ClipboardCheck, FileText, Package, ShoppingCart, Star, TriangleAlert, Truck } from 'lucide-react'
+import {
+  PoppysProcurementIcon,
+  PoppysSuppliersIcon,
+  PoppysPurchaseRequisitionIcon,
+  PoppysPurchaseOrderIcon,
+  PoppysGrnIcon,
+} from '@/components/icons'
 
 import { useAsync } from '@/hooks/useAsync'
 import {
@@ -26,6 +33,7 @@ export function ProcurementOverview() {
   return (
     <PageContainer>
       <PageHeader
+        icon={PoppysProcurementIcon}
         title="Procurement Overview"
         description="Yarn, dyes and chemicals, trims, packaging and job work bought against the confirmed order book."
       />
@@ -141,6 +149,7 @@ export function Suppliers() {
   return (
     <PageContainer>
       <PageHeader
+        icon={PoppysSuppliersIcon}
         title="Suppliers"
         description="The approved vendor list across the Tirupur and Coimbatore supply belt, rated on delivery and quality."
       />
@@ -209,7 +218,11 @@ export function PurchaseRequisitions() {
 
   return (
     <PageContainer>
-      <PageHeader title="Purchase Requisitions" description="Requirements raised by merchandising, stores and the dye house." />
+      <PageHeader
+        icon={PoppysPurchaseRequisitionIcon}
+        title="Purchase Requisitions"
+        description="Requirements raised by merchandising, stores and the dye house."
+      />
 
       <StatGrid cols={4}>
         <StatCard label="Requisitions" value={stats.total} icon={ClipboardCheck} tone="brand" />
@@ -298,7 +311,11 @@ export function PurchaseOrders() {
 
   return (
     <PageContainer>
-      <PageHeader title="Purchase Orders" description="Orders placed on the approved vendor list, tracked to receipt." />
+      <PageHeader
+        icon={PoppysPurchaseOrderIcon}
+        title="Purchase Orders"
+        description="Orders placed on the approved vendor list, tracked to receipt."
+      />
 
       <StatGrid cols={4}>
         <StatCard label="Purchase orders" value={stats.total} icon={ShoppingCart} tone="brand" />
@@ -378,7 +395,11 @@ export function Grn() {
 
   return (
     <PageContainer>
-      <PageHeader title="Goods Receipt Notes" description="Material booked in at the gate, with incoming inspection outcome." />
+      <PageHeader
+        icon={PoppysGrnIcon}
+        title="Goods Receipt Notes"
+        description="Material booked in at the gate, with incoming inspection outcome."
+      />
 
       <StatGrid cols={4}>
         <StatCard label="Receipts" value={stats.total} icon={Truck} tone="brand" />

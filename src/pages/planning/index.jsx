@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Bar, CartesianGrid, Cell, Line, ComposedChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { CalendarRange, ClipboardList, Gauge, Layers, TriangleAlert } from 'lucide-react'
+import { PoppysPlanningIcon, PoppysProductionIcon } from '@/components/icons'
 
 import { useAsync } from '@/hooks/useAsync'
 import { useAppStore } from '@/store/appStore'
@@ -35,6 +36,7 @@ export function ProductionOrders() {
   return (
     <PageContainer>
       <PageHeader
+        icon={PoppysPlanningIcon}
         title="Production Orders"
         description="Work orders on the floor, each tracked stage by stage from knitting through to packing."
       />
@@ -147,6 +149,7 @@ export function CapacityPlanning() {
   return (
     <PageContainer>
       <PageHeader
+        icon={PoppysProductionIcon}
         title="Capacity Planning"
         description="Twelve weeks of sewing load against installed capacity across the three garment units."
       />

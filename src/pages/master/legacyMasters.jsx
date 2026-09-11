@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Boxes, Cog } from 'lucide-react'
+import { PoppysMaintenanceIcon, PoppysKnittingIcon } from '@/components/icons'
 
 import { useAsync } from '@/hooks/useAsync'
 import { getMachines, getYarnLots } from '@/services'
@@ -17,7 +18,11 @@ export function MasterMachines() {
 
   return (
     <PageContainer>
-      <PageHeader title="Machines Master" description="The machine master across every stage of the route, with make, model and rated capacity." />
+      <PageHeader
+        icon={PoppysMaintenanceIcon}
+        title="Machines Master"
+        description="The machine master across every stage of the route, with make, model and rated capacity."
+      />
 
       <StatGrid cols={3}>
         <StatCard label="Machines on file" value={(machines.data ?? []).length} icon={Cog} tone="brand" />
@@ -83,6 +88,7 @@ export function MasterYarnLots() {
   return (
     <PageContainer>
       <PageHeader
+        icon={PoppysKnittingIcon}
         title="Yarn Lots Master"
         description="The lot master with the laboratory figures a knitter checks before releasing yarn to machines: CSP, Uster, imperfections and RKM."
       />

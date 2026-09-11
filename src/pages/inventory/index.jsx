@@ -1,6 +1,14 @@
 import { useMemo, useState } from 'react'
 import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { AlertTriangle, ArrowDownLeft, ArrowUpRight, Boxes, Factory, Layers, Package, Warehouse } from 'lucide-react'
+import {
+  PoppysInventoryIcon,
+  PoppysKnittingIcon,
+  PoppysFabricInspectionIcon,
+  PoppysProductionIcon,
+  PoppysPackagingIcon,
+  PoppysStockMovementIcon,
+} from '@/components/icons'
 
 import { useAsync } from '@/hooks/useAsync'
 import { useAppStore } from '@/store/appStore'
@@ -38,6 +46,7 @@ export function InventoryOverview() {
   return (
     <PageContainer>
       <PageHeader
+        icon={PoppysInventoryIcon}
         title="Inventory Overview"
         description="Four-layer operational flow: Yarn, Fabric, Work-in-Progress buffers, and Finished Goods cartons across factory units and processing plants."
       />
@@ -186,6 +195,7 @@ export function YarnStore() {
   return (
     <PageContainer>
       <PageHeader
+        icon={PoppysKnittingIcon}
         title="Yarn Store"
         description="Yarn held by count, blend and lot. Shade continuity inside a buyer order depends on staying within one lot family."
       />
@@ -257,6 +267,7 @@ export function FabricStore() {
   return (
     <PageContainer>
       <PageHeader
+        icon={PoppysFabricInspectionIcon}
         title="Fabric Store"
         description="Greige, dyed, compacted and printed fabric held against live orders, tracked by shade lot and 4-point inspection grade."
       />
@@ -337,6 +348,7 @@ export function Wip() {
   return (
     <PageContainer>
       <PageHeader
+        icon={PoppysProductionIcon}
         title="Work in Progress"
         description="Pieces sitting between stages. Anything held more than four days is fabric already paid for and not yet earning."
       />
@@ -436,7 +448,11 @@ export function FinishedGoods() {
 
   return (
     <PageContainer>
-      <PageHeader title="Finished Goods" description="Packed stock waiting on a sailing, by warehouse and ship window." />
+      <PageHeader
+        icon={PoppysPackagingIcon}
+        title="Finished Goods"
+        description="Packed stock waiting on a sailing, by warehouse and ship window."
+      />
 
       <StatGrid cols={4}>
         <StatCard label="Packed pieces" value={formatNumber(stats.pieces)} icon={Package} tone="brand" />
@@ -509,7 +525,11 @@ export function StockMovements() {
 
   return (
     <PageContainer>
-      <PageHeader title="Stock Movements" description="Every receipt, issue, transfer, return and adjustment across the stores." />
+      <PageHeader
+        icon={PoppysStockMovementIcon}
+        title="Stock Movements"
+        description="Every receipt, issue, transfer, return and adjustment across the stores."
+      />
 
       <Card>
         <CardHeader>

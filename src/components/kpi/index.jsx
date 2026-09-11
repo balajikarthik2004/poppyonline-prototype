@@ -1,53 +1,55 @@
 import { Link } from 'react-router-dom'
 import {
-  DollarSign,
-  Gauge,
-  Layers,
-  ShieldCheck,
-  Shirt,
-  Timer,
   TrendingDown,
   TrendingUp,
   Minus,
 } from 'lucide-react'
+import {
+  PoppysSewingIcon,
+  PoppysKnittingIcon,
+  PoppysProductionIcon,
+  PoppysAqlIcon,
+  PoppysPlanningIcon,
+  PoppysShippingIcon,
+} from '@/components/icons'
 
 import { cn } from '@/lib/utils'
 import { Card } from '@/components/ui'
 
-/** Icon and colour treatment per KPI, kept out of the data layer. */
+/** Icon and colour treatment per KPI using Poppys custom domain icons. */
 export const kpiVisuals = {
   garmentOutput: {
-    icon: Shirt,
+    icon: PoppysSewingIcon,
     iconBg: 'bg-brand-50',
     iconRing: 'ring-brand-100',
     iconColor: 'text-brand-600',
   },
   fabricKnitted: {
-    icon: Layers,
+    icon: PoppysKnittingIcon,
     iconBg: 'bg-poppy-50',
     iconRing: 'ring-poppy-100',
     iconColor: 'text-poppy-600',
   },
   lineEfficiency: {
-    icon: Gauge,
+    icon: PoppysProductionIcon,
     iconBg: 'bg-info-50',
     iconRing: 'ring-info-100',
     iconColor: 'text-info-600',
   },
   qualityPass: {
-    icon: ShieldCheck,
+    icon: PoppysAqlIcon,
     iconBg: 'bg-success-50',
     iconRing: 'ring-success-100',
     iconColor: 'text-success-600',
   },
   ordersOnTime: {
-    icon: Timer,
+    icon: PoppysPlanningIcon,
     iconBg: 'bg-warning-50',
     iconRing: 'ring-warning-100',
     iconColor: 'text-warning-600',
   },
   exportValue: {
-    icon: DollarSign,
+    icon: PoppysShippingIcon,
     iconBg: 'bg-brand-50',
     iconRing: 'ring-brand-100',
     iconColor: 'text-brand-600',
@@ -87,12 +89,12 @@ export function KpiCard({ kpi }) {
         <div className="flex items-center gap-2.5">
           <div
             className={cn(
-              'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ring-1 ring-inset',
+              'flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-lg ring-1 ring-inset',
               visual.iconBg,
               visual.iconRing,
             )}
           >
-            <Icon className={cn('h-4 w-4', visual.iconColor)} />
+            <Icon className={cn('h-4.5 w-4.5', visual.iconColor)} />
           </div>
           <div className="min-w-0 text-xs font-medium leading-tight text-muted-foreground">{kpi.label}</div>
         </div>

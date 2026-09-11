@@ -1,5 +1,5 @@
 export const currentUser = {
-  name: 'Sudeep',
+  name: 'Sakthivel',
   initials: 'VS',
   email: 'md@poppysknitwear.com',
   role: 'MD',

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { Bot, Maximize2, X } from 'lucide-react'
+import { Maximize2, X } from 'lucide-react'
+import { PoppysAiIcon } from '@/components/icons'
 
 import { AiChat } from './AiChat'
 
@@ -38,7 +39,7 @@ export function CopilotLauncher() {
       <div className="group fixed bottom-6 right-6 z-40 flex flex-col items-center">
         {/* On-hover speech bubble tooltip */}
         <div className="pointer-events-none mb-3 flex items-center gap-1.5 rounded-xl border border-brand-500/40 bg-ink-950/95 px-3.5 py-1.5 text-xs font-semibold text-white shadow-2xl backdrop-blur-sm opacity-0 translate-y-2 transition-all duration-300 ease-out group-hover:opacity-100 group-hover:translate-y-0 select-none whitespace-nowrap">
-          <Bot className="h-3.5 w-3.5 text-poppy-400" />
+          <PoppysAiIcon className="h-3.5 w-3.5 text-poppy-400" />
           <span>Ask Poppys</span>
           {/* Tooltip downward arrow/beak pointing to the center of the button */}
           <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 h-2 w-2 rotate-45 border-b border-r border-brand-500/40 bg-ink-950" />
@@ -58,7 +59,7 @@ export function CopilotLauncher() {
 
           {/* Button core */}
           <div className="relative flex h-full w-full items-center justify-center rounded-full bg-linear-to-br from-ink-900 via-brand-800 to-brand-700 text-white shadow-xl ring-2 ring-brand-400/30 transition-all duration-300 group-hover:scale-105 group-hover:shadow-2xl group-hover:ring-brand-400/60">
-            <Bot className="h-6 w-6 text-poppy-300 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-12" />
+            <PoppysAiIcon className="h-7 w-7 text-poppy-300 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6" />
           </div>
         </button>
       </div>
@@ -71,7 +72,7 @@ export function CopilotLauncher() {
       className="animate-fade-rise fixed bottom-5 right-5 z-40 flex h-128 w-[min(24rem,calc(100vw-2.5rem))] flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-2xl"
     >
       <div className="flex shrink-0 items-center gap-2 border-b border-border bg-linear-to-r from-ink-900 to-brand-800 px-3.5 py-2.5 text-white">
-        <Bot className="h-4 w-4 text-poppy-300" />
+        <PoppysAiIcon className="h-4.5 w-4.5 text-poppy-300" />
         <span className="flex-1 font-display text-[13px] font-semibold">Poppys AI Agent</span>
 
         <Link

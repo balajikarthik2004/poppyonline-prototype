@@ -35,6 +35,7 @@ import {
 import { useAsync } from '@/hooks/useAsync'
 import { getAiInsights, getExperts, getPlaybooks } from '@/services'
 import { AiChat } from '@/components/ai/AiChat'
+import { PoppysAiIcon } from '@/components/icons'
 import { PageContainer, PageHeader, StatCard, StatGrid, FilterChip, FilterChipGroup } from '@/components/common'
 import { Badge, Card, CardContent, Progress, Skeleton, Input } from '@/components/ui'
 import { cn } from '@/lib/utils'
@@ -47,7 +48,7 @@ export function Copilot() {
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="knit relative flex shrink-0 items-center gap-3 border-b border-border bg-linear-to-r from-ink-950 via-ink-900 to-brand-800 px-5 py-4 text-white">
         <div className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-white/10">
-          <Bot className="h-4.5 w-4.5 text-poppy-300" />
+          <PoppysAiIcon className="h-5 w-5 text-poppy-300" />
         </div>
         <div className="relative min-w-0">
           <div className="font-display text-sm font-bold">Poppys Copilot</div>
@@ -85,6 +86,7 @@ export function AiInsights() {
   return (
     <PageContainer>
       <PageHeader
+        icon={PoppysAiIcon}
         title="Insights & Anomalies"
         description="Derived locally from the same data the modules read, so an insight never contradicts the page behind it."
       />
@@ -210,6 +212,7 @@ export function Playbooks() {
   return (
     <PageContainer>
       <PageHeader
+        icon={PoppysAiIcon}
         title="Resolution Playbooks"
         description="The standing response to the situations that actually recur on a knitwear floor - written down so the fix does not depend on who is on shift."
       />
@@ -362,8 +365,9 @@ export function ExpertNetwork() {
   return (
     <PageContainer>
       <PageHeader
-        title="Expert Network"
-        description="Who to call when the playbook runs out - technical leads, domain masters, and machinery specialists across all manufacturing units."
+        icon={PoppysAiIcon}
+        title="Specialist Directory & Factory Network"
+        description="Direct line of escalation to the technicians and department masters who solve these floor conditions every day."
       />
 
       {/* Filter & Search Bar */}

@@ -6,12 +6,17 @@ import { Card, Skeleton } from '@/components/ui'
 
 /* ---------------------------------------------------------- PageHeader ---- */
 
-export function PageHeader({ title, description, actions }) {
+export function PageHeader({ title, description, actions, icon: Icon }) {
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div className="min-w-0">
         <h1 className="flex items-center gap-2.5 text-xl font-semibold tracking-tight text-foreground">
           <span className="h-5 w-1 shrink-0 rounded-full bg-linear-to-b from-brand-400 to-poppy-400" />
+          {Icon && (
+            <div className="flex h-7.5 w-7.5 shrink-0 items-center justify-center rounded-lg bg-brand-500/10 text-brand-600 dark:bg-brand-500/20 dark:text-brand-300">
+              <Icon className="h-4.5 w-4.5" />
+            </div>
+          )}
           <span className="truncate">{title}</span>
         </h1>
         {description && <p className="mt-1 pl-3.5 text-sm text-muted-foreground">{description}</p>}

@@ -20,6 +20,15 @@ import {
   Truck,
   Users,
 } from 'lucide-react'
+import {
+  PoppysMasterDataIcon,
+  PoppysDefectsIcon,
+  PoppysPortIcon,
+  PoppysSalesIcon,
+  PoppysBuyerIcon,
+  PoppysSuppliersIcon,
+  PoppysStyleLibraryIcon,
+} from '@/components/icons'
 
 import { useAsync } from '@/hooks/useAsync'
 import {
@@ -81,7 +90,7 @@ export function MasterStyles() {
 
   const handleCreateRevision = async () => {
     if (!activeStyle || !revisionReason.trim()) return
-    await createStyleBomRevision(activeStyle.id, revisionReason, userRole === 'MD' ? 'Dr. C. Sakthivel' : 'Senior Merchandiser')
+    await createStyleBomRevision(activeStyle.id, revisionReason, userRole === 'MD' ? 'Sakthivel' : 'Senior Merchandiser')
     setIsRevisionModalOpen(false)
     setRevisionReason('')
     setRefreshTrigger((c) => c + 1)
@@ -89,13 +98,14 @@ export function MasterStyles() {
 
   const handleApproveRevision = async (revId) => {
     if (!activeStyle) return
-    await approveStyleBomRevision(activeStyle.id, revId, 'Dr. C. Sakthivel (MD)')
+    await approveStyleBomRevision(activeStyle.id, revId, 'Sakthivel (MD)')
     setRefreshTrigger((c) => c + 1)
   }
 
   return (
     <PageContainer>
       <PageHeader
+        icon={PoppysStyleLibraryIcon}
         title="Garment Style Master & BOM Governance"
         description="The universal style library with multi-level BOM structures (Fabric, Yarn, Trims, 9 Processes), version control, and bulk cutting approval gates."
       >
@@ -524,6 +534,7 @@ export function MasterBuyers() {
   return (
     <PageContainer>
       <PageHeader
+        icon={PoppysBuyerIcon}
         title="Buyer Master & Commercial Governance"
         description="Single source of truth for international account profiles: commercial payment terms, Incoterms, AQL audit standards, EDI protocols, and designated forwarders."
       />
@@ -662,6 +673,7 @@ export function MasterSuppliers() {
   return (
     <PageContainer>
       <PageHeader
+        icon={PoppysSuppliersIcon}
         title="Supplier & Mill Master Governance"
         description="Unified vendor ledger across Spinning Mills, Dye Chemicals, Trims, Packaging, and Job-Work with ratings, quality scores, and lead times."
       />
@@ -761,8 +773,9 @@ export function MasterDefects() {
   return (
     <PageContainer>
       <PageHeader
-        title="Universal Defect Code Dictionary"
-        description="Single centralized defect dictionary consumed across Sewing Floor, Inline Inspection, 4-Point Fabric QC, Final AQL, Rejections, and 8D CAPA."
+        icon={PoppysDefectsIcon}
+        title="Defect Taxonomy & Root Cause Library"
+        description="Standardised defect classification across all 9 manufacturing departments, with severe classification rules and standard operating procedures."
       />
 
       <StatGrid cols={4}>
@@ -846,8 +859,9 @@ export function MasterPorts() {
   return (
     <PageContainer>
       <PageHeader
-        title="Ports & International Logistics Master"
-        description="Global loading and discharge ports, transit corridors, freight forwarders, and standard transit lead times feeding the OTIF engine."
+        icon={PoppysPortIcon}
+        title="Ports, Corridors & Global Gateways"
+        description="International sea routes, air hubs, typical maritime transit days, cut-off gates, and container terminal tracking parameters."
       />
 
       <StatGrid cols={4}>

@@ -128,7 +128,7 @@ export const activities = Array.from({ length: 30 }, (_, i) => {
       'K. Revathi',
       'S. Arunkumar',
       'M. Priyadarshini',
-      'R. Sudeep',
+      'A. Sakthivel',
       'System',
       'A. Bhuvaneswari',
     ]),
