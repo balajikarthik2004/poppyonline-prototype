@@ -79,6 +79,9 @@ function Am5ProductionDemandChartComponent({
       fontWeight: '600',
       fill: am5.color(0x475569),
       paddingTop: 6,
+      rotation: -45,
+      centerY: am5.p50,
+      centerX: am5.p100,
     })
 
     const xAxis = chart.xAxes.push(

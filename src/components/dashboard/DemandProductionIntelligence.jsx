@@ -417,7 +417,7 @@ export function DemandProductionIntelligence() {
         {/* ==================================================== CHART 3: NEW LAUNCH PERFORMANCE (AM5 HORIZONTAL BAR) ==================================================== */}
         <Card className="flex flex-col h-full shadow-xs">
           <CardHeader className="pb-2">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between xl:flex-col xl:items-start xl:gap-3 2xl:flex-row 2xl:items-center 2xl:justify-between">
               <div>
                 <CardTitle className="text-base">New Launch Performance</CardTitle>
                 <p className="mt-0.5 text-xs text-muted-foreground">
@@ -426,7 +426,7 @@ export function DemandProductionIntelligence() {
               </div>
 
               {/* View Selector: Top Performers | At Risk | All Launches */}
-              <div className="inline-flex items-center gap-1 rounded-xl border border-border/80 bg-slate-100 dark:bg-secondary/50 p-1 text-[11px] font-semibold shadow-2xs">
+              <div className="inline-flex flex-wrap items-center gap-1 rounded-xl border border-border/80 bg-slate-100 dark:bg-secondary/50 p-1 text-[11px] font-semibold shadow-2xs self-start">
                 <button
                   type="button"
                   onClick={() => setLaunchFilter('top')}
