@@ -90,7 +90,7 @@ export function MasterStyles() {
 
   const handleCreateRevision = async () => {
     if (!activeStyle || !revisionReason.trim()) return
-    await createStyleBomRevision(activeStyle.id, revisionReason, userRole === 'MD' ? 'Sakthivel' : 'Senior Merchandiser')
+    await createStyleBomRevision(activeStyle.id, revisionReason, userRole === 'MD' ? 'Vicky' : 'Senior Merchandiser')
     setIsRevisionModalOpen(false)
     setRevisionReason('')
     setRefreshTrigger((c) => c + 1)
@@ -98,7 +98,7 @@ export function MasterStyles() {
 
   const handleApproveRevision = async (revId) => {
     if (!activeStyle) return
-    await approveStyleBomRevision(activeStyle.id, revId, 'Sakthivel (MD)')
+    await approveStyleBomRevision(activeStyle.id, revId, 'Vicky (MD)')
     setRefreshTrigger((c) => c + 1)
   }
 

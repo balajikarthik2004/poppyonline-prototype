@@ -119,7 +119,7 @@ export const styles = Array.from({ length: 64 }, (_, i) => {
       status: partialStyle.activeRevisionVersion === 'v1.0' ? 'Approved' : 'Superseded',
       createdAt: '2026-01-10T10:00:00.000Z',
       createdBy: 'Senior Merchandiser',
-      approvedBy: 'Sakthivel (MD)',
+      approvedBy: 'Vicky (MD)',
       approvedAt: '2026-01-15T14:30:00.000Z',
       effectiveDate: '2026-01-15',
       changeReason: 'Initial baseline BOM sign-off for bulk order',

@@ -31,7 +31,7 @@ export async function updatePermission(role, moduleKey, action, value) {
     currentMatrix[role][moduleKey][action] = Boolean(value)
 
     const log = createAuditEvent({
-      user: 'Sakthivel',
+      user: 'Vicky',
       role: 'MD',
       action: 'Permission Changed',
       entity: `${role} -> ${moduleKey}.${action}`,

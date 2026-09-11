@@ -604,4 +604,6 @@ export * from './productionService'
 export * from './shipmentService'
 export * from './masterService'
 export * from './adminService'
+export * from './intelligenceService'
+
 

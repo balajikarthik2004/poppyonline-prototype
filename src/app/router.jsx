@@ -68,6 +68,8 @@ export const routes = [
   { path: 'merch/sampling', element: <Sampling /> },
   { path: 'merch/costing', element: <Costing /> },
 
+  { path: 'planning', element: <Navigate to="/planning/production-orders" replace /> },
+  { path: 'planning/orders', element: <Navigate to="/planning/production-orders" replace /> },
   { path: 'planning/production-orders', element: <ProductionOrders /> },
   { path: 'planning/capacity', element: <CapacityPlanning /> },
 

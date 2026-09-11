@@ -10,7 +10,7 @@ export const company = {
   group: 'Poppys Group',
   tagline: 'Knit with conscience. Shipped with confidence.',
   establishedYear: 1973,
-  founder: 'Padmashri Dr. A. Sakthivel',
+  founder: 'Padmashri Dr. A. Vicky',
   positioning:
     'One of the leading knitwear exporters of India, manufacturing knitted and woven apparel for men, women and children from a vertically integrated base in Tirupur.',
   about:
@@ -40,12 +40,12 @@ export const company = {
 
   leadership: [
     {
-      name: 'Padmashri Dr. A. Sakthivel',
+      name: 'Padmashri Dr. A. Vicky',
       title: 'Chairman',
       note: 'A pioneer of knitwear manufacturing and export from Tirupur, recognised for his work on export infrastructure, industrial parks and fashion education in the region.',
     },
     {
-      name: 'Shri Sakthivel Kaleswara Vignesh',
+      name: 'Shri Vicky Kaleswara Vignesh',
       title: 'Managing Director',
       note: 'MBA in International Business (London) with 14 years across manufacturing and shipping. Has extended the group into hotels, travel and online retail.',
     },

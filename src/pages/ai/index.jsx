@@ -46,17 +46,6 @@ import { cn } from '@/lib/utils'
 export function Copilot() {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="knit relative flex shrink-0 items-center gap-3 border-b border-border bg-linear-to-r from-ink-950 via-ink-900 to-brand-800 px-5 py-4 text-white">
-        <div className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-white/10">
-          <PoppysAiIcon className="h-5 w-5 text-poppy-300" />
-        </div>
-        <div className="relative min-w-0">
-          <div className="font-display text-sm font-bold">Poppys Copilot</div>
-          <div className="text-[11px] text-ink-200">
-            Reads the live order book, production route, quality register and stores. Nothing leaves the building.
-          </div>
-        </div>
-      </div>
       <AiChat />
     </div>
   )
