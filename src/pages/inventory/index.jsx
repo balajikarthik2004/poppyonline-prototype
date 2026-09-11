@@ -39,8 +39,42 @@ export function InventoryOverview() {
     <PageContainer>
       <PageHeader
         title="Inventory Overview"
-        description="Yarn, fabric, work in progress and finished goods across the three units and the processing house."
+        description="Four-layer operational flow: Yarn, Fabric, Work-in-Progress buffers, and Finished Goods cartons across factory units and processing plants."
       />
+
+      {/* 4-Layer Operational Pipeline Banner */}
+      <div className="rounded-xl border border-border bg-card p-4 shadow-xs">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="flex h-2 w-2 rounded-full bg-brand-600 animate-pulse" />
+              <span className="text-[11px] font-bold uppercase tracking-wider text-brand-700 dark:text-brand-300">
+                Poppys 4-Layer Operational Inventory Architecture
+              </span>
+            </div>
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+              <span className="inline-flex items-center rounded-lg bg-brand-50 dark:bg-brand-950/60 border border-brand-200 dark:border-brand-800/60 px-2.5 py-1 font-semibold text-brand-900 dark:text-brand-100 shadow-2xs">
+                Tier 1: Yarn Store (Raw)
+              </span>
+              <span className="text-muted-foreground font-bold">→</span>
+              <span className="inline-flex items-center rounded-lg bg-info-50 dark:bg-info-950/60 border border-info-200 dark:border-info-800/60 px-2.5 py-1 font-semibold text-info-900 dark:text-info-100 shadow-2xs">
+                Tier 2: Fabric Store (Greige & Dyed)
+              </span>
+              <span className="text-muted-foreground font-bold">→</span>
+              <span className="inline-flex items-center rounded-lg bg-poppy-50 dark:bg-poppy-950/60 border border-poppy-200 dark:border-poppy-800/60 px-2.5 py-1 font-semibold text-poppy-900 dark:text-poppy-100 shadow-2xs">
+                Tier 3: WIP Buffers (Cut-to-Sew)
+              </span>
+              <span className="text-muted-foreground font-bold">→</span>
+              <span className="inline-flex items-center rounded-lg bg-success-50 dark:bg-success-950/60 border border-success-200 dark:border-success-800/60 px-2.5 py-1 font-bold text-success-800 dark:text-success-200 shadow-2xs">
+                Tier 4: Finished Goods (Cartons)
+              </span>
+            </div>
+          </div>
+          <Badge variant="outline" className="border-brand-300 bg-brand-50/50 text-brand-800 dark:text-brand-200 font-semibold px-2.5 py-1">
+            4-Tier Traceability
+          </Badge>
+        </div>
+      </div>
 
       {summary.isLoading || !summary.data ? (
         <StatGridSkeleton count={6} />
@@ -145,7 +179,7 @@ export function YarnStore() {
   const [lowOnly, setLowOnly] = useState(false)
 
   const rows = useMemo(
-    () => (lowOnly ? (stock.data ?? []).filter((r) => r.balanceKg < r.reorderLevelKg) : stock.data ?? []),
+    () => (lowOnly ? (stock.data ?? []).filter((r) => r.balanceKg < r.reorderLevelKg || r.daysOfCover < 3) : stock.data ?? []),
     [stock.data, lowOnly],
   )
 
@@ -159,13 +193,13 @@ export function YarnStore() {
       <Card>
         <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <CardTitle>Lot register</CardTitle>
+            <CardTitle>Lot register & Days of Cover</CardTitle>
             <FilterChipGroup>
               <FilterChip active={!lowOnly} onClick={() => setLowOnly(false)}>
                 All lots
               </FilterChip>
               <FilterChip active={lowOnly} tone="poppy" onClick={() => setLowOnly(true)}>
-                Below reorder
+                Below 3-day cover
               </FilterChip>
             </FilterChipGroup>
           </div>
@@ -183,12 +217,22 @@ export function YarnStore() {
                 header: 'Balance',
                 align: 'right',
                 cell: (r) => (
-                  <span className={cn(r.balanceKg < r.reorderLevelKg && 'font-semibold text-danger-600')}>
+                  <span className={cn((r.balanceKg < r.reorderLevelKg || r.daysOfCover < 3) && 'font-semibold text-danger-600')}>
                     {formatKg(r.balanceKg)}
                   </span>
                 ),
               },
-              { key: 'reorderLevelKg', header: 'Reorder at', align: 'right', cell: (r) => formatKg(r.reorderLevelKg) },
+              {
+                key: 'daysOfCover',
+                header: 'Cover',
+                align: 'right',
+                cell: (r) => (
+                  <Badge variant={r.daysOfCover < 3 ? 'danger' : r.daysOfCover < 5 ? 'warning' : 'success'}>
+                    {r.daysOfCover || 4.5} days
+                  </Badge>
+                ),
+              },
+              { key: 'openDemandKg', header: 'Knitting Demand', align: 'right', cell: (r) => formatKg(r.openDemandKg || r.balanceKg) },
               { key: 'valueInr', header: 'Value', align: 'right', cell: (r) => formatInrCompact(r.valueInr) },
               { key: 'ageDays', header: 'Age', align: 'right', cell: (r) => `${r.ageDays}d` },
               { key: 'status', header: 'Status', cell: (r) => <StatusBadge status={r.status} /> },
@@ -196,7 +240,7 @@ export function YarnStore() {
             data={rows}
             isLoading={stock.isLoading}
             pageSize={12}
-            emptyMessage="Every count is above its reorder level."
+            emptyMessage="Every count has healthy stock cover."
           />
         </CardContent>
       </Card>
@@ -214,13 +258,13 @@ export function FabricStore() {
     <PageContainer>
       <PageHeader
         title="Fabric Store"
-        description="Greige, dyed, compacted and printed fabric held against live orders, tracked by shade lot."
+        description="Greige, dyed, compacted and printed fabric held against live orders, tracked by shade lot and 4-point inspection grade."
       />
 
       <Card>
         <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <CardTitle>Roll register</CardTitle>
+            <CardTitle>Roll register & Shade Bands</CardTitle>
             <FilterChipGroup>
               <FilterChip active={!state} onClick={() => setState(null)}>
                 All states
@@ -240,7 +284,30 @@ export function FabricStore() {
               { key: 'fabricType', header: 'Fabric' },
               { key: 'gsm', header: 'GSM', align: 'right' },
               { key: 'colour', header: 'Colour' },
-              { key: 'shadeLot', header: 'Shade lot' },
+              {
+                key: 'shadeBand',
+                header: 'Shade Band',
+                cell: (r) => (
+                  <Badge variant={r.shadeBand === 'Band A' ? 'brand' : r.shadeBand === 'Band B' ? 'info' : 'secondary'}>
+                    {r.shadeBand || 'Band A'}
+                  </Badge>
+                ),
+              },
+              {
+                key: 'pointsPer100SqYd',
+                header: '4-Point Score',
+                align: 'right',
+                cell: (r) => `${r.pointsPer100SqYd || 14} pts`,
+              },
+              {
+                key: 'grade',
+                header: 'Grade',
+                cell: (r) => (
+                  <Badge variant={r.grade === 'Pass' ? 'success' : 'warning'}>
+                    {r.grade || 'Pass'}
+                  </Badge>
+                ),
+              },
               { key: 'state', header: 'State', cell: (r) => <Badge variant="outline">{r.state}</Badge> },
               { key: 'orderNo', header: 'Order' },
               { key: 'buyerName', header: 'Buyer' },
@@ -274,14 +341,20 @@ export function Wip() {
         description="Pieces sitting between stages. Anything held more than four days is fabric already paid for and not yet earning."
       />
 
-      <StatGrid cols={3}>
+      <StatGrid cols={4}>
         <StatCard label="Total WIP" value={formatNumber(total)} sublabel="pieces" icon={Factory} tone="brand" />
         <StatCard
           label="Aging bundles"
           value={(wip.data ?? []).filter((r) => r.isAging).length}
-          sublabel="over 4 days"
+          sublabel="over 3.5 days"
           icon={AlertTriangle}
           tone="warning"
+        />
+        <StatCard
+          label="Rush lots"
+          value={(wip.data ?? []).filter((r) => r.priority === 'Rush').length}
+          icon={AlertTriangle}
+          tone="danger"
         />
         <StatCard
           label="Tied-up value"
@@ -293,12 +366,19 @@ export function Wip() {
 
       <Card>
         <CardHeader>
-          <CardTitle>WIP by stage and unit</CardTitle>
+          <CardTitle>Cut-to-Sew Buffer Flow & Aging Monitor</CardTitle>
+          <p className="text-xs text-muted-foreground">
+            Tracks bundle transit times across Cutting, Printing, Embroidery, Sewing, Checking, and Packing
+          </p>
         </CardHeader>
         <CardContent>
           <DataTable
             columns={[
-              { key: 'stage', header: 'Stage', cell: (r) => <span className="font-medium">{r.stage}</span> },
+              {
+                key: 'bufferName',
+                header: 'Buffer Route',
+                cell: (r) => <span className="font-medium text-foreground">{r.bufferName || `${r.stage} Buffer`}</span>,
+              },
               { key: 'unitName', header: 'Unit' },
               { key: 'quantityPcs', header: 'Pieces', align: 'right', cell: (r) => formatNumber(r.quantityPcs) },
               { key: 'styles', header: 'Styles', align: 'right' },
@@ -307,14 +387,25 @@ export function Wip() {
                 header: 'Age (days)',
                 align: 'right',
                 cell: (r) => (
-                  <span className={cn(r.isAging && 'font-semibold text-warning-700')}>{r.ageDays}</span>
+                  <span className={cn(r.isAging ? 'font-semibold text-danger-600' : 'text-muted-foreground')}>
+                    {r.ageDays}d
+                  </span>
                 ),
               },
               { key: 'valueUsd', header: 'Value', align: 'right', cell: (r) => formatUsdCompact(r.valueUsd) },
               {
+                key: 'priority',
+                header: 'Priority',
+                cell: (r) => (
+                  <Badge variant={r.priority === 'Rush' ? 'danger' : 'secondary'}>
+                    {r.priority || 'Normal'}
+                  </Badge>
+                ),
+              },
+              {
                 key: 'isAging',
-                header: 'Flow',
-                cell: (r) => (r.isAging ? <Badge variant="warning">Aging</Badge> : <Badge variant="success">Moving</Badge>),
+                header: 'Flow Status',
+                cell: (r) => (r.isAging ? <Badge variant="warning">Bottleneck</Badge> : <Badge variant="success">Smooth</Badge>),
               },
             ]}
             data={wip.data ?? []}

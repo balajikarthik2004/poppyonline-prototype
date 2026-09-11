@@ -1,13 +1,11 @@
 import { format, subDays } from 'date-fns'
 import { makeRng } from '@/lib/random'
 import { units } from './units'
+import { secBenchmarks, calculateDepartmentSec } from '@/lib/energy/secCalculation'
+import { calculateZldMassBalance } from '@/lib/energy/zldCalculation'
+import { calculateBoilerEfficiency } from '@/lib/energy/boilerEfficiency'
+import { calculateCarbonOffset } from '@/lib/energy/carbonCalculation'
 
-/**
- * Energy and utilities. A dye house is the heavy consumer in a knitwear group,
- * so the mix separates grid, captive wind and rooftop solar, and tracks the two
- * intensities a Tirupur processor is actually judged on: kWh per kilo of fabric
- * processed and litres of water per kilo, with zero-liquid-discharge recovery.
- */
 const rng = makeRng(7712)
 
 const HISTORY_DAYS = 90
@@ -25,6 +23,11 @@ export const energyHistory = Array.from({ length: HISTORY_DAYS }, (_, i) => {
 
   const fabricKg = Math.round(11000 * factor * rng.float(0.9, 1.05, 3))
   const waterKl = Math.round(fabricKg * rng.float(0.055, 0.085, 4))
+  const waterRecoveredKl = Math.round(waterKl * rng.float(0.88, 0.94, 3))
+  const steamTonnes = Math.round(fabricKg * rng.float(0.0035, 0.0048, 5) * 100) / 100
+  const biomassTons = Math.round((steamTonnes / 3.85) * 10) / 10
+
+  const carbon = calculateCarbonOffset({ solarKwh: solar, windKwh: wind, gridKwh: grid, dieselLitres: diesel / 2 })
 
   return {
     date: date.toISOString(),
@@ -38,9 +41,12 @@ export const energyHistory = Array.from({ length: HISTORY_DAYS }, (_, i) => {
     fabricKg,
     kwhPerKg: Math.round((total / fabricKg) * 100) / 100,
     waterKl,
-    waterRecoveredKl: Math.round(waterKl * rng.float(0.78, 0.94, 3)),
-    steamTonnes: Math.round(fabricKg * rng.float(0.0018, 0.0031, 5) * 100) / 100,
-    co2Tonnes: Math.round(((grid * 0.71 + diesel * 2.68) / 1000) * 10) / 10,
+    waterRecoveredKl,
+    recoveryPct: Math.round((waterRecoveredKl / waterKl) * 1000) / 10,
+    steamTonnes,
+    biomassTons,
+    co2Tonnes: carbon.actualEmissionsTons,
+    co2AvoidedTonnes: carbon.co2AvoidedTons,
   }
 })
 
@@ -51,7 +57,8 @@ export const energyTargets = {
   kwhPerKg: 6.4,
   renewablePct: 45,
   waterLitresPerKg: 62,
-  recoveryPct: 88,
+  recoveryPct: 92,
+  boilerEfficiencyPct: 82,
 }
 
 export const energyByUnit = units.map((unit, i) => {
@@ -63,12 +70,11 @@ export const energyByUnit = units.map((unit, i) => {
     fullName: unit.name,
     kwh: total,
     sharePct: Math.round(share * 1000) / 10,
-    renewablePct: rng.float(28, 58, 1),
-    kwhPerKg: rng.float(4.8, 9.2, 2),
+    renewablePct: rng.float(32, 62, 1),
+    kwhPerKg: rng.float(4.8, 8.4, 2),
   }
 })
 
-/** Where the power actually goes inside the group. */
 export const energyByDepartment = [
   { department: 'Dyeing & Processing', kwh: Math.round(latestEnergy.total * 0.41) },
   { department: 'Knitting', kwh: Math.round(latestEnergy.total * 0.17) },
@@ -77,3 +83,112 @@ export const energyByDepartment = [
   { department: 'Printing & Embroidery', kwh: Math.round(latestEnergy.total * 0.09) },
   { department: 'Utilities & Lighting', kwh: Math.round(latestEnergy.total * 0.08) },
 ]
+
+/** Granular Department SEC Breakdown compared against benchmarks */
+export const departmentSecData = [
+  {
+    departmentKey: 'dyeing',
+    name: 'Dyeing & Processing',
+    stageLabel: 'Dyeing & Processing',
+    unitName: 'Unit IV Processing',
+    kwh: Math.round(latestEnergy.total * 0.41),
+    productionKg: 6200,
+    actualKwhPerKg: 1.98,
+    benchmarkKwhPerKg: secBenchmarks.dyeing.benchmarkKwhPerKg,
+    variancePct: 7.0,
+    status: 'Normal',
+  },
+  {
+    departmentKey: 'knitting',
+    name: 'Knitting Operations',
+    stageLabel: 'Knitting',
+    unitName: 'Unit I',
+    kwh: Math.round(latestEnergy.total * 0.17),
+    productionKg: 9500,
+    actualKwhPerKg: 0.72,
+    benchmarkKwhPerKg: secBenchmarks.knitting.benchmarkKwhPerKg,
+    variancePct: -4.0,
+    status: 'Energy Efficient',
+  },
+  {
+    departmentKey: 'compacting',
+    name: 'Compacting & Finishing',
+    stageLabel: 'Compacting',
+    unitName: 'Unit IV Processing',
+    kwh: Math.round(latestEnergy.total * 0.12),
+    productionKg: 5800,
+    actualKwhPerKg: 0.94,
+    benchmarkKwhPerKg: secBenchmarks.compacting.benchmarkKwhPerKg,
+    variancePct: 4.4,
+    status: 'Normal',
+  },
+  {
+    departmentKey: 'sewing',
+    name: '24 Sewing Lines',
+    stageLabel: 'Sewing',
+    unitName: 'Units I, II, III',
+    kwh: Math.round(latestEnergy.total * 0.13),
+    productionKg: 7800,
+    actualKwhPerKg: 0.58,
+    benchmarkKwhPerKg: secBenchmarks.sewing.benchmarkKwhPerKg,
+    variancePct: 5.5,
+    status: 'Normal',
+  },
+  {
+    departmentKey: 'printing',
+    name: 'Printing & Embroidery',
+    stageLabel: 'Printing',
+    unitName: 'Unit III',
+    kwh: Math.round(latestEnergy.total * 0.09),
+    productionKg: 3200,
+    actualKwhPerKg: 0.74,
+    benchmarkKwhPerKg: secBenchmarks.printing.benchmarkKwhPerKg,
+    variancePct: 13.8,
+    status: 'High Consumption',
+  },
+  {
+    departmentKey: 'utilities',
+    name: 'Compressed Air & RO Plant',
+    stageLabel: 'Utilities',
+    unitName: 'Group Wide',
+    kwh: Math.round(latestEnergy.total * 0.08),
+    productionKg: 11000,
+    actualKwhPerKg: 0.22,
+    benchmarkKwhPerKg: 0.20,
+    variancePct: 10.0,
+    status: 'Normal',
+  },
+]
+
+/** ZLD Water Mass Balance */
+export const zldWaterBalance = calculateZldMassBalance({
+  freshWaterIntakeKl: 85,
+  dyeingProcessDemandKl: 540,
+  washingProcessDemandKl: 180,
+  roStage1FeedKl: 650,
+  roStage1PermeateKl: 488, // 75%
+  roStage2PermeateKl: 113, // 70% of reject
+  meeCondensateKl: 38,     // MEE recovery
+  etpInflowCodPpm: 2600,
+  etpInflowBodPpm: 920,
+  finalDischargeCodPpm: 24,
+  finalDischargeBodPpm: 3,
+})
+
+/** Biomass Boiler Steam Analytics */
+export const boilerAnalytics = calculateBoilerEfficiency({
+  biomassBriquettesTons: 11.8,
+  steamGeneratedTons: 46.5,
+  feedWaterTempC: 68,
+  steamPressureBar: 8.5,
+  steamTempC: 175,
+  fuelCalorificValueKcalPerKg: 3850,
+})
+
+/** Carbon Reduction & Renewable Summary */
+export const carbonReduction = calculateCarbonOffset({
+  solarKwh: latestEnergy.solar,
+  windKwh: latestEnergy.wind,
+  gridKwh: latestEnergy.grid,
+  dieselLitres: Math.round(latestEnergy.diesel / 2.2),
+})

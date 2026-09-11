@@ -12,6 +12,8 @@ import {
   alerts,
   answerFor,
   aqlAudits,
+  auditRecords,
+  boilerAnalytics,
   breakdowns,
   buildInventorySummary,
   buildMaintenanceSummary,
@@ -19,24 +21,35 @@ import {
   buildQualitySummary,
   buyers,
   capacityPlan,
+  carbonReduction,
   company,
   complaints,
+  complianceCertifications,
+  copqSummary,
   costSheets,
+  departmentSecData,
+  eightDCapaCases,
   energyByDepartment,
   energyByUnit,
   energyHistory,
   energyTargets,
+  esgMetrics,
   experts,
   exportOrders,
+  fabricRollInspections,
   fabricStock,
   finishedGoods,
+  getAqlSamplingPlan,
+  getFleetHealthMatrix,
   goodsReceipts,
   inlineInspections,
   kpiCards,
   labTests,
   machines,
+  nonConformanceCases,
   orderStatusTiles,
   playbooks,
+  pmChecklistTemplates,
   pmSchedule,
   processStages,
   productionHistory,
@@ -54,10 +67,12 @@ import {
   styles,
   suppliers,
   sustainabilitySnapshot,
+  technicians,
   units,
   wipStock,
   yarnLots,
   yarnStock,
+  zldWaterBalance,
 } from '@/mock'
 import { dateRangeDays } from '@/lib/dateRange'
 
@@ -262,6 +277,52 @@ export async function getFabricQuality() {
   })
 }
 
+/** ASTM D5430 4-Point System Fabric Roll Inspections */
+export async function getFabricRollInspections(filters = {}) {
+  let result = fabricRollInspections
+  if (filters.verdict) result = result.filter((r) => r.verdict === filters.verdict)
+  return simulateDelay(result)
+}
+
+/** 8D Closed-Loop Root Cause Problem Solving Cases */
+export async function getEightDCapaCases(filters = {}) {
+  let result = eightDCapaCases
+  if (filters.status) result = result.filter((c) => c.status === filters.status)
+  return simulateDelay(result)
+}
+
+/** Cost of Poor Quality (COPQ) Summary */
+export async function getCopqSummary() {
+  return simulateDelay(copqSummary)
+}
+
+/** Dynamic AQL Sampling Calculator */
+export async function getAqlSamplingCalculator(lotSize, aqlLevel) {
+  return simulateDelay(getAqlSamplingPlan(lotSize, aqlLevel))
+}
+
+/* -------------------------------------------------------------- compliance */
+
+export async function getComplianceCertifications() {
+  return simulateDelay(complianceCertifications)
+}
+
+export async function getAuditRecords(filters = {}) {
+  let result = auditRecords
+  if (filters.status) result = result.filter((a) => a.status === filters.status)
+  return simulateDelay(result)
+}
+
+export async function getNonConformanceCases(filters = {}) {
+  let result = nonConformanceCases
+  if (filters.status) result = result.filter((n) => n.status === filters.status)
+  return simulateDelay(result)
+}
+
+export async function getEsgMetrics() {
+  return simulateDelay(esgMetrics)
+}
+
 /* --------------------------------------------------------------- inventory */
 
 export async function getInventorySummary() {
@@ -331,6 +392,10 @@ export async function getMaintenanceSummary() {
   return simulateDelay(buildMaintenanceSummary())
 }
 
+export async function getFleetHealth() {
+  return simulateDelay(getFleetHealthMatrix())
+}
+
 export async function getMachines(filters = {}) {
   let result = machines
   if (filters.stageKey) result = result.filter((m) => m.stageKey === filters.stageKey)
@@ -342,17 +407,91 @@ export async function getMachines(filters = {}) {
 export async function getPmSchedule(filters = {}) {
   let result = pmSchedule
   if (filters.status) result = result.filter((p) => p.status === filters.status)
+  if (filters.stageKey) result = result.filter((p) => p.stageKey === filters.stageKey)
   return simulateDelay(result)
+}
+
+export async function executePmChecklist(taskId, checklistUpdates) {
+  const task = pmSchedule.find((p) => p.id === taskId)
+  if (task) {
+    task.checklist = checklistUpdates
+    const allDone = checklistUpdates.every((c) => c.done)
+    if (allDone && task.status !== 'Completed') {
+      task.status = 'In Progress'
+    }
+  }
+  return simulateDelay(task)
+}
+
+export async function signOffPmTask(taskId, signOffData) {
+  const task = pmSchedule.find((p) => p.id === taskId)
+  if (task) {
+    task.status = 'Completed'
+    task.completedAt = new Date().toISOString()
+    task.digitalSignOff = signOffData
+  }
+  return simulateDelay(task)
 }
 
 export async function getBreakdowns(filters = {}) {
   let result = breakdowns
   if (filters.status) result = result.filter((b) => b.status === filters.status)
+  if (filters.severity) result = result.filter((b) => b.severity === filters.severity)
+  if (filters.stageKey) result = result.filter((b) => b.stageKey === filters.stageKey)
   return simulateDelay(result)
 }
 
-export async function getSpareParts() {
-  return simulateDelay(spareParts)
+export async function getTechnicians() {
+  return simulateDelay(technicians)
+}
+
+export async function createBreakdownTicket(ticketData) {
+  const newId = `BD-2026-${String(breakdowns.length + 90).padStart(3, '0')}`
+  const newTicket = {
+    id: newId,
+    reportedAt: new Date().toISOString(),
+    status: 'Diagnosis',
+    downtimeHours: 0.5,
+    machineIsolated: true,
+    testRunPassed: false,
+    ...ticketData,
+  }
+  breakdowns.unshift(newTicket)
+  return simulateDelay(newTicket)
+}
+
+export async function updateBreakdownStatus(ticketId, nextStatus, updates = {}) {
+  const ticket = breakdowns.find((b) => b.id === ticketId)
+  if (ticket) {
+    ticket.status = nextStatus
+    Object.assign(ticket, updates)
+    if (nextStatus === 'Released') {
+      ticket.resolvedAt = new Date().toISOString()
+      ticket.machineIsolated = false
+      ticket.testRunPassed = true
+    }
+  }
+  return simulateDelay(ticket)
+}
+
+export async function getSpareParts(filters = {}) {
+  let result = spareParts
+  if (filters.stageKey) result = result.filter((s) => s.stageKey === filters.stageKey)
+  if (filters.category) result = result.filter((s) => s.category === filters.category)
+  if (filters.criticalOnly) result = result.filter((s) => s.isStockOutRisk || s.isReorderNeeded)
+  return simulateDelay(result)
+}
+
+export async function issueSparePart(partId, qty, reason = 'Breakdown Repair') {
+  const part = spareParts.find((p) => p.id === partId)
+  if (part) {
+    part.stockQty = Math.max(0, part.stockQty - qty)
+    part.lastIssuedAt = new Date().toISOString()
+    if (part.stockQty <= part.reorderPoint && !part.openPrNo) {
+      part.openPrNo = `PR-2026-${String(Math.floor(1000 + Math.random() * 9000))}`
+    }
+  }
+  return simulateDelay(part)
 }
 
 /* ------------------------------------------------------------------ energy */
@@ -370,14 +509,20 @@ export async function getEnergy(preset = '7d') {
     history,
     byUnit: energyByUnit,
     byDepartment: energyByDepartment,
+    departmentSec: departmentSecData,
+    zldBalance: zldWaterBalance,
+    boilerAnalytics,
+    carbonOffset: carbonReduction,
     targets: energyTargets,
     totalKwh: total,
     renewableKwh: renewable,
     renewablePct: total ? Math.round((renewable / total) * 1000) / 10 : 0,
     kwhPerKg: fabricKg ? Math.round((total / fabricKg) * 100) / 100 : 0,
     waterKl,
+    waterRecoveredKl: recoveredKl,
     recoveryPct: waterKl ? Math.round((recoveredKl / waterKl) * 1000) / 10 : 0,
     co2Tonnes: Math.round(history.reduce((s, r) => s + r.co2Tonnes, 0) * 10) / 10,
+    co2AvoidedTonnes: Math.round(history.reduce((s, r) => s + (r.co2AvoidedTonnes || 0), 0) * 10) / 10,
     mix: [
       { name: 'Grid', value: history.reduce((s, r) => s + r.grid, 0) },
       { name: 'Wind', value: history.reduce((s, r) => s + r.wind, 0) },
@@ -450,3 +595,13 @@ export async function getCompanyProfile() {
 export async function getYarnLots() {
   return simulateDelay(yarnLots)
 }
+
+/* -------------------------------------------------------- modular services */
+export * from './costingService'
+export * from './qualityService'
+export * from './inventoryService'
+export * from './productionService'
+export * from './shipmentService'
+export * from './masterService'
+export * from './adminService'
+

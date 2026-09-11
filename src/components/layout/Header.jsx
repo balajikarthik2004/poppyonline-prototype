@@ -148,15 +148,27 @@ export function Header({ onMenuClick }) {
         </Popover>
 
         <Popover
-          className="w-56"
+          className="w-60"
           trigger={
             <button
               type="button"
               className="flex items-center gap-2 rounded-full py-1 pl-1 pr-2.5 transition-colors hover:bg-accent"
             >
-              <Avatar initials={currentUser.initials} />
+              <Avatar initials={(userRoleTitles[userRole] || 'MD').slice(0, 2).toUpperCase()} />
               <div className="hidden text-left leading-tight md:block">
-                <div className="text-xs font-semibold text-foreground">{currentUser.name}</div>
+                <div className="text-xs font-semibold text-foreground">
+                  {userRole === 'MD'
+                    ? 'Dr. C. Sakthivel'
+                    : userRole === 'GM'
+                    ? 'S. Rajagopalan'
+                    : userRole === 'Merchandiser'
+                    ? 'K. Priya Dharshini'
+                    : userRole === 'QA'
+                    ? 'R. Vignesh Kumar'
+                    : userRole === 'Planner'
+                    ? 'M. Senthil Nathan'
+                    : 'V. Sundaram'}
+                </div>
                 <div className="text-[11px] text-muted-foreground">{userRoleTitles[userRole]}</div>
               </div>
             </button>

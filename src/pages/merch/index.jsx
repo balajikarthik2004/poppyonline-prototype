@@ -212,11 +212,40 @@ export function Sampling() {
   )
 }
 
+import { calculateCmCost, calculateGarmentCost, calculateYarnPerPiece } from '@/lib/costing'
+
 /* ============================================================= Costing ==== */
 
 export function Costing() {
   const [status, setStatus] = useState(null)
   const sheets = useAsync(() => getCostSheets(status ? { status } : {}), [status])
+
+  // Interactive Cost Simulator State
+  const [simGsm, setSimGsm] = useState(180)
+  const [simArea, setSimArea] = useState(0.85)
+  const [simSmv, setSimSmv] = useState(14.5)
+  const [simMargin, setSimMargin] = useState(12)
+  const [simYarnRate, setSimYarnRate] = useState(4.2)
+
+  const simulatedCost = useMemo(() => {
+    const yarnKg = calculateYarnPerPiece(simGsm, simArea, 10)
+    const yarnCost = yarnKg * simYarnRate
+    const cmCost = calculateCmCost(simSmv, 1.85, 68)
+
+    return {
+      yarnKg,
+      ...calculateGarmentCost({
+        yarnCost,
+        knittingDyeingCost: yarnKg * 1.75,
+        printEmbroideryCost: 0.45,
+        cmCost,
+        trimsAndAccessories: 0.35,
+        packingAndFreight: 0.25,
+        overheadUsd: 0.2,
+        targetMarginPct: simMargin,
+      }),
+    }
+  }, [simGsm, simArea, simSmv, simMargin, simYarnRate])
 
   const stats = useMemo(() => {
     const rows = sheets.data ?? []
@@ -265,6 +294,103 @@ export function Costing() {
           tone={stats.review > 0 ? 'danger' : 'default'}
         />
       </StatGrid>
+
+      {/* Interactive Garment Cost Estimator */}
+      <Card className="border-brand-200 bg-linear-to-b from-brand-50/40 to-card">
+        <CardHeader>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Calculator className="h-4.5 w-4.5 text-brand-600" />
+                Live Garment Cost & FOB Price Simulator
+              </CardTitle>
+              <p className="text-xs text-muted-foreground">
+                Formula-driven CM, yarn consumption, and FOB quote generator
+              </p>
+            </div>
+            <Badge variant="brand">Interactive Merchandising Tool</Badge>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-5">
+            <div className="space-y-3 md:col-span-3">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                <div>
+                  <label className="text-[11px] font-medium text-muted-foreground">Fabric GSM</label>
+                  <input
+                    type="number"
+                    value={simGsm}
+                    onChange={(e) => setSimGsm(Number(e.target.value))}
+                    className="mt-1 w-full rounded-md border border-input bg-background px-2.5 py-1 text-sm shadow-xs"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] font-medium text-muted-foreground">Pattern Area (m²)</label>
+                  <input
+                    type="number"
+                    step="0.05"
+                    value={simArea}
+                    onChange={(e) => setSimArea(Number(e.target.value))}
+                    className="mt-1 w-full rounded-md border border-input bg-background px-2.5 py-1 text-sm shadow-xs"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] font-medium text-muted-foreground">Style SMV (mins)</label>
+                  <input
+                    type="number"
+                    step="0.5"
+                    value={simSmv}
+                    onChange={(e) => setSimSmv(Number(e.target.value))}
+                    className="mt-1 w-full rounded-md border border-input bg-background px-2.5 py-1 text-sm shadow-xs"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] font-medium text-muted-foreground">Yarn Rate ($/kg)</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={simYarnRate}
+                    onChange={(e) => setSimYarnRate(Number(e.target.value))}
+                    className="mt-1 w-full rounded-md border border-input bg-background px-2.5 py-1 text-sm shadow-xs"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] font-medium text-muted-foreground">Target Margin %</label>
+                  <input
+                    type="number"
+                    value={simMargin}
+                    onChange={(e) => setSimMargin(Number(e.target.value))}
+                    className="mt-1 w-full rounded-md border border-input bg-background px-2.5 py-1 text-sm shadow-xs"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col justify-center rounded-lg border border-border bg-background p-4 md:col-span-2">
+              <div className="text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">Estimated FOB Price</div>
+              <div className="font-display text-2xl font-bold text-brand-600">
+                ${simulatedCost.fobPrice} <span className="text-xs font-normal text-muted-foreground">/ piece</span>
+              </div>
+              <div className="mt-2.5 space-y-1 text-xs text-muted-foreground">
+                <div className="flex justify-between">
+                  <span>Yarn Consumption:</span>
+                  <span className="font-medium text-foreground">{simulatedCost.yarnKg} kg / pc</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Factory Net Cost:</span>
+                  <span className="font-medium text-foreground">${simulatedCost.netFactoryCost}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Gross Profit Margin:</span>
+                  <span className="font-medium text-success-600">
+                    ${simulatedCost.marginUsd} ({simMargin}%)
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

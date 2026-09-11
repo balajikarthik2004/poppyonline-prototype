@@ -1,35 +1,88 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
+import {
+  AlertOctagon,
+  ChevronRight,
   CircleCheck,
   CircleX,
   ClipboardCheck,
+  DollarSign,
   FlaskConical,
-  MessageSquare,
+  Info,
+  Layers,
+  Printer,
   RotateCcw,
+  Scale,
+  ShieldCheck,
   Trash2,
   TriangleAlert,
+  X,
 } from 'lucide-react'
 
 import { useAsync } from '@/hooks/useAsync'
 import {
   getAqlAudits,
+  getAqlSamplingCalculator,
   getComplaints,
-  getFabricQuality,
+  getCopqSummary,
+  getEightDCapaCases,
+  getFabricRollInspections,
   getInlineInspections,
   getLabTests,
   getQualitySummary,
   getRejections,
 } from '@/services'
-import { PageContainer, PageHeader, StatCard, StatGrid, StatGridSkeleton, FilterChip, FilterChipGroup, EmptyState } from '@/components/common'
+import {
+  FilterChip,
+  FilterChipGroup,
+  PageContainer,
+  PageHeader,
+  StatCard,
+  StatGrid,
+  StatGridSkeleton,
+} from '@/components/common'
 import { DataTable, StatusBadge } from '@/components/tables'
-import { Badge, Card, CardContent, CardHeader, CardTitle, Progress, Skeleton } from '@/components/ui'
+import { Am5DonutChart } from '@/components/charts/Am5DonutChart'
+import {
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Progress,
+  Skeleton,
+} from '@/components/ui'
 import { formatDate, formatNumber, formatPct, formatUsdCompact } from '@/lib/format'
-import { axisTick, chartTooltipStyle, colorAt, statusColors } from '@/lib/chartColors'
+import {
+  axisTick,
+  chartItemStyle,
+  chartLabelStyle,
+  chartTooltipStyle,
+  colorAt,
+  statusColors,
+} from '@/lib/chartColors'
 import { cn } from '@/lib/utils'
 
-const resultColors = { Pass: statusColors.success, Rework: statusColors.warning, Fail: statusColors.danger }
+const resultColors = {
+  Pass: statusColors.success,
+  Rework: statusColors.warning,
+  Fail: statusColors.danger,
+}
+
+const labTestCategories = ['All Tests', 'Physical Tests', 'Colour Fastness', 'Chemical & Eco', 'Yarn Quality']
 
 function toneForRate(pct) {
   if (pct >= 90) return 'bg-success-500'
@@ -41,6 +94,7 @@ function toneForRate(pct) {
 
 export function QualityDashboard() {
   const summary = useAsync(getQualitySummary, [])
+  const copq = useAsync(getCopqSummary, [])
   const inline = useAsync(() => getInlineInspections(), [])
 
   const resultSlices = useMemo(() => {
@@ -59,22 +113,31 @@ export function QualityDashboard() {
       (inline.data ?? [])
         .filter((r) => r.verdict !== 'Pass')
         .sort((a, b) => new Date(b.inspectedAt) - new Date(a.inspectedAt))
-        .slice(0, 8),
+        .slice(0, 6),
     [inline.data],
   )
 
   return (
     <PageContainer>
       <PageHeader
-        title="Quality Management"
-        description="The three gates: the laboratory on yarn and fabric, inline inspection on the sewing floor, and the final AQL audit before cartons are sealed."
+        title="Quality Assurance & QMS Command Center"
+        description="The Closed-Loop Quality Management System (QMS) linking the laboratory, 4-point fabric rolls, inline sewing DHU, final AQL audits, and 8D CAPA root-cause resolution."
         actions={
-          <Link
-            to="/quality/lab-tests"
-            className="rounded-md border border-border px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-          >
-            Open lab register
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              to="/quality/aql"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white shadow-xs transition hover:bg-brand-700"
+            >
+              <ClipboardCheck className="h-3.5 w-3.5" />
+              AQL Sampling Simulator
+            </Link>
+            <Link
+              to="/quality/lab-tests"
+              className="rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground transition hover:bg-accent"
+            >
+              Open Lab Register
+            </Link>
+          </div>
         }
       />
 
@@ -82,20 +145,157 @@ export function QualityDashboard() {
         <StatGridSkeleton count={6} />
       ) : (
         <StatGrid cols={6}>
-          <StatCard label="Lab tests" value={formatNumber(summary.data.total)} sublabel="last 30 days" icon={FlaskConical} tone="info" to="/quality/lab-tests" />
-          <StatCard label="Lab pass rate" value={formatPct(summary.data.passRatePct)} icon={CircleCheck} tone="success" />
-          <StatCard label="Inline DHU" value={`${summary.data.avgDhuPct}%`} sublabel="defects per 100 units" icon={TriangleAlert} tone={summary.data.avgDhuPct > 5 ? 'danger' : 'warning'} to="/quality/inline" />
-          <StatCard label="AQL pass rate" value={formatPct(summary.data.aqlPassRatePct)} sublabel="final audits" icon={ClipboardCheck} tone="brand" to="/quality/aql" />
-          <StatCard label="Rejected" value={formatNumber(summary.data.rejectionPcs)} sublabel={formatUsdCompact(summary.data.rejectionValueUsd)} icon={Trash2} tone="danger" to="/quality/rejections" />
-          <StatCard label="Open complaints" value={summary.data.openComplaints} icon={MessageSquare} tone="warning" to="/quality/complaints" />
+          <StatCard
+            label="Lab Tests Cleared"
+            value={formatNumber(summary.data.total)}
+            sublabel={`Pass rate ${formatPct(summary.data.passRatePct)}`}
+            icon={FlaskConical}
+            tone="info"
+            to="/quality/lab-tests"
+          />
+          <StatCard
+            label="Inline Sewing DHU"
+            value={`${summary.data.avgDhuPct}%`}
+            sublabel="Target < 4.0% DHU"
+            icon={TriangleAlert}
+            tone={summary.data.avgDhuPct > 5 ? 'danger' : 'warning'}
+            to="/quality/inline"
+          />
+          <StatCard
+            label="AQL 1.5/2.5 Pass Rate"
+            value={formatPct(summary.data.aqlPassRatePct)}
+            sublabel="Pre-shipment audit gate"
+            icon={ShieldCheck}
+            tone="brand"
+            to="/quality/aql"
+          />
+          <StatCard
+            label="4-Point Fabric Holds"
+            value="3 Rolls"
+            sublabel="ASTM D5430 > 28 pts"
+            icon={Layers}
+            tone="warning"
+            to="/quality/fabric"
+          />
+          <StatCard
+            label="Total Scrap & Rejection"
+            value={formatNumber(summary.data.rejectionPcs)}
+            sublabel={formatUsdCompact(summary.data.rejectionValueUsd)}
+            icon={Trash2}
+            tone="danger"
+            to="/quality/rejections"
+          />
+          <StatCard
+            label="Active 8D CAPA Cases"
+            value={summary.data.activeCapaCount || 3}
+            sublabel="Root-cause resolution"
+            icon={AlertOctagon}
+            tone="poppy"
+            to="/quality/complaints"
+          />
         </StatGrid>
       )}
+
+      {/* Closed-Loop QMS Architecture Pipeline Banner */}
+      <Card className="border-brand-200 bg-linear-to-r from-brand-950 via-ink-950 to-brand-900 p-4.5 text-white shadow-md">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="font-display text-xs font-bold uppercase tracking-wider text-brand-200">
+                Poppys Closed-Loop Quality Architecture (QMS Gate Flow)
+              </span>
+            </div>
+            <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-ink-100">
+              <Link to="/quality/lab-tests" className="rounded-md bg-white/10 px-2.5 py-1 transition hover:bg-white/20">
+                1. Lab Testing (Shrinkage/Fastness)
+              </Link>
+              <span className="text-muted-foreground">→</span>
+              <Link to="/quality/fabric" className="rounded-md bg-white/10 px-2.5 py-1 transition hover:bg-white/20">
+                2. ASTM 4-Point Fabric
+              </Link>
+              <span className="text-muted-foreground">→</span>
+              <Link to="/quality/inline" className="rounded-md bg-white/10 px-2.5 py-1 transition hover:bg-white/20">
+                3. Inline Sewing DHU (24 Lines)
+              </Link>
+              <span className="text-muted-foreground">→</span>
+              <Link to="/quality/aql" className="rounded-md bg-white/10 px-2.5 py-1 transition hover:bg-white/20">
+                4. Pre-Shipment AQL 1.5/2.5
+              </Link>
+              <span className="text-muted-foreground">→</span>
+              <Link to="/quality/complaints" className="rounded-md bg-emerald-500/20 text-emerald-300 font-semibold px-2.5 py-1 transition hover:bg-emerald-500/30">
+                5. 8D CAPA Root-Cause Closure
+              </Link>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Link
+              to="/ai/playbooks"
+              className="inline-flex items-center rounded-lg bg-white/15 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur transition hover:bg-white/25"
+            >
+              Quality Playbooks →
+            </Link>
+          </div>
+        </div>
+      </Card>
+
+      {/* Cost of Poor Quality (COPQ) & Financial Quality Impact */}
+      <Card className="border-border">
+        <CardHeader className="pb-3 border-b border-border/60 bg-muted/20">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <DollarSign className="h-4.5 w-4.5 text-brand-600" />
+                Cost of Poor Quality (COPQ) & Defect Cost Analysis
+              </CardTitle>
+              <p className="text-xs text-muted-foreground">
+                Total monthly quality cost impact: Internal scrap, line rework labor, laboratory appraisal, and buyer debit notes.
+              </p>
+            </div>
+            <Badge variant="outline" className="font-mono text-xs">
+              COPQ: 0.82% of Group Turnover
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="rounded-xl border border-danger-200 bg-danger-50/40 p-3.5">
+              <div className="text-[11px] font-semibold text-danger-700 uppercase">Internal Scrap & Reject</div>
+              <div className="mt-1 font-display text-xl font-bold text-danger-700">
+                {formatUsdCompact(copq.data?.scrapValueUsd || 21400)}
+              </div>
+              <div className="mt-1 text-xs text-muted-foreground">Cut panel waste & defective dyed fabric</div>
+            </div>
+            <div className="rounded-xl border border-warning-200 bg-warning-50/40 p-3.5">
+              <div className="text-[11px] font-semibold text-warning-800 uppercase">Rework & Alteration Labor</div>
+              <div className="mt-1 font-display text-xl font-bold text-warning-800">
+                {formatUsdCompact(copq.data?.reworkLaborUsd || 14200)}
+              </div>
+              <div className="mt-1 text-xs text-muted-foreground">Sewing unpicking & spot-cleaning hours</div>
+            </div>
+            <div className="rounded-xl border border-info-200 bg-info-50/40 p-3.5">
+              <div className="text-[11px] font-semibold text-info-700 uppercase">Testing & Lab Appraisal</div>
+              <div className="mt-1 font-display text-xl font-bold text-info-700">
+                {formatUsdCompact(copq.data?.testingAppraisalUsd || 8600)}
+              </div>
+              <div className="mt-1 text-xs text-muted-foreground">Third-party SGS / Intertek certification tests</div>
+            </div>
+            <div className="rounded-xl border border-poppy-200 bg-poppy-50/40 p-3.5">
+              <div className="text-[11px] font-semibold text-poppy-700 uppercase">External Risk / Debit Notes</div>
+              <div className="mt-1 font-display text-xl font-bold text-poppy-700">
+                {formatUsdCompact(copq.data?.customerDebitNotesUsd || 4400)}
+              </div>
+              <div className="mt-1 text-xs text-muted-foreground">Buyer allowances & air-freight risk buffers</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
         <Card>
           <CardHeader>
-            <CardTitle>Pass rate by stage</CardTitle>
-            <p className="text-xs text-muted-foreground">Yarn, greige, dyed fabric and garment</p>
+            <CardTitle>Pass Rate by Manufacturing Stage</CardTitle>
+            <p className="text-xs text-muted-foreground">Yarn, greige, dyed fabric, and finished garment</p>
           </CardHeader>
           <CardContent>
             {summary.isLoading || !summary.data ? (
@@ -137,109 +337,98 @@ export function QualityDashboard() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Lab test outcomes</CardTitle>
-            <p className="text-xs text-muted-foreground">Disposition of every laboratory test</p>
+            <CardTitle>Test Disposition</CardTitle>
+            <p className="text-xs text-muted-foreground">Physical & chemical disposition of all 110 test batches</p>
           </CardHeader>
           <CardContent>
             {summary.isLoading ? (
               <Skeleton className="h-56 w-full" />
             ) : (
-              <div className="space-y-3">
-                <div className="relative h-44 w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie data={resultSlices} dataKey="value" nameKey="name" innerRadius="64%" outerRadius="95%" paddingAngle={2} isAnimationActive={false}>
-                        {resultSlices.map((slice) => (
-                          <Cell key={slice.name} fill={resultColors[slice.name]} stroke="hsl(var(--card))" />
-                        ))}
-                      </Pie>
-                      <Tooltip contentStyle={chartTooltipStyle} formatter={(v, n) => [`${formatNumber(v)} (${((v / resultTotal) * 100).toFixed(1)}%)`, n]} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Tests</span>
-                    <span className="num text-base font-bold text-foreground">{formatNumber(resultTotal)}</span>
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  {resultSlices.map((slice) => (
-                    <div key={slice.name} className="flex items-center justify-between px-1.5 py-1 text-xs">
-                      <span className="flex items-center gap-1.5">
-                        <span className="h-2 w-2 rounded-full" style={{ backgroundColor: resultColors[slice.name] }} />
-                        <span className="font-medium text-foreground">{slice.name}</span>
-                      </span>
-                      <span className="tabular-nums text-muted-foreground">
-                        {formatNumber(slice.value)} - {((slice.value / resultTotal) * 100).toFixed(0)}%
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <Am5DonutChart
+                data={resultSlices}
+                height={260}
+                innerRadius={55}
+                showLegend={true}
+              />
             )}
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Rejection reasons</CardTitle>
-            <p className="text-xs text-muted-foreground">Pieces rejected by root cause</p>
+            <CardTitle>Top Rejection Defect Pareto</CardTitle>
+            <p className="text-xs text-muted-foreground">Leading causes of garment rework & scrap</p>
           </CardHeader>
           <CardContent>
             {summary.isLoading || !summary.data ? (
               <Skeleton className="h-56 w-full" />
             ) : (
-              <div className="h-56 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart layout="vertical" data={summary.data.byReason.slice(0, 7)} margin={{ top: 4, right: 12, left: 4, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="hsl(var(--border))" />
-                    <XAxis type="number" tick={axisTick} axisLine={false} tickLine={false} />
-                    <YAxis type="category" dataKey="key" width={134} tick={{ ...axisTick, fontSize: 10 }} axisLine={false} tickLine={false} />
-                    <Tooltip cursor={{ fill: 'hsl(var(--muted))', opacity: 0.5 }} contentStyle={chartTooltipStyle} formatter={(v) => [`${formatNumber(v)} pcs`, 'Rejected']} />
-                    <Bar dataKey="qtyPcs" radius={[0, 4, 4, 0]} maxBarSize={18} fill={statusColors.danger} />
-                  </BarChart>
-                </ResponsiveContainer>
+              <div className="space-y-3">
+                {summary.data.byReason.slice(0, 5).map((r, i) => {
+                  const totalPcs = summary.data.byReason.reduce((s, x) => s + x.qtyPcs, 0)
+                  const pct = totalPcs ? (r.qtyPcs / totalPcs) * 100 : 0
+                  return (
+                    <div key={r.key}>
+                      <div className="mb-1 flex items-center justify-between text-xs">
+                        <span className="font-medium text-foreground truncate max-w-45">{i + 1}. {r.key}</span>
+                        <span className="tabular-nums text-muted-foreground">
+                          {formatNumber(r.qtyPcs)} pcs ({pct.toFixed(1)}%)
+                        </span>
+                      </div>
+                      <Progress value={pct} indicatorClassName={colorAt(i)} />
+                    </div>
+                  )
+                })}
               </div>
             )}
           </CardContent>
         </Card>
       </div>
 
+      {/* High-Attention Quality Incident Queue */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Lines needing attention</CardTitle>
-              <p className="mt-0.5 text-xs text-muted-foreground">Most recent inline inspections above the DHU threshold</p>
+              <CardTitle>High-Attention Quality Queue</CardTitle>
+              <p className="text-xs text-muted-foreground">
+                Recent inspection reports with DHU &gt; 5.0% or Line-Stop alarms requiring supervisor review
+              </p>
             </div>
-            <Link to="/quality/inline" className="shrink-0 text-xs font-medium text-primary hover:underline">
-              View all
-            </Link>
+            <Badge variant="danger" className="animate-pulse">Live Floor Alerts</Badge>
           </div>
         </CardHeader>
         <CardContent>
-          {inline.isLoading ? (
-            <div className="space-y-2">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Skeleton key={i} className="h-12 w-full" />
-              ))}
-            </div>
-          ) : attention.length === 0 ? (
-            <EmptyState message="Every line is inside the DHU threshold." icon={CircleCheck} />
-          ) : (
-            <div className="divide-y divide-border">
-              {attention.map((row) => (
-                <div key={row.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2.5">
-                  <span className="w-28 shrink-0 text-sm font-medium text-foreground">{row.reportNo}</span>
-                  <Badge variant="outline">{row.unitName}</Badge>
-                  <Badge variant="secondary">{row.lineNo}</Badge>
-                  <span className="text-xs text-muted-foreground">{row.styleNo}</span>
-                  <span className="flex-1 truncate text-xs text-muted-foreground">Top defect: {row.topDefect}</span>
-                  <span className="text-xs font-semibold tabular-nums text-danger-600">DHU {row.dhuPct}%</span>
-                  <StatusBadge status={row.verdict} />
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {attention.map((row) => (
+              <div
+                key={row.id}
+                className="rounded-xl border border-danger-200 bg-danger-50/20 p-3.5 transition-all hover:border-danger-400"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-foreground">{row.lineNo}</span>
+                      <span className="text-xs text-muted-foreground">({row.unitName})</span>
+                    </div>
+                    <div className="text-xs font-medium text-brand-700 mt-0.5">
+                      Style {row.styleNo} - {row.buyerName}
+                    </div>
+                  </div>
+                  <Badge variant={row.verdict === 'Stop Line' ? 'danger' : 'warning'}>
+                    {row.verdict}
+                  </Badge>
                 </div>
-              ))}
-            </div>
-          )}
+                <div className="mt-2 flex items-baseline justify-between border-t border-border/60 pt-2 text-xs">
+                  <span className="font-semibold text-danger-600">DHU {row.dhuPct}%</span>
+                  <span className="text-muted-foreground">{row.defectsFound} defects / {row.checkedPcs} checked</span>
+                </div>
+                <div className="mt-1 text-[11px] text-muted-foreground">
+                  Primary Defect: <strong className="text-foreground">{row.topDefect}</strong>
+                </div>
+              </div>
+            ))}
+          </div>
         </CardContent>
       </Card>
     </PageContainer>
@@ -249,23 +438,63 @@ export function QualityDashboard() {
 /* ============================================================ LabTests ==== */
 
 export function LabTests() {
+  const [category, setCategory] = useState('All Tests')
   const [result, setResult] = useState(null)
-  const tests = useAsync(() => getLabTests(result ? { result } : {}), [result])
+  const [selectedTest, setSelectedTest] = useState(null)
+  const tests = useAsync(() => getLabTests(), [])
+
+  const filteredTests = useMemo(() => {
+    let list = tests.data ?? []
+    if (category !== 'All Tests') {
+      list = list.filter((t) => t.category === category)
+    }
+    if (result) {
+      list = list.filter((t) => t.result === result)
+    }
+    return list
+  }, [tests.data, category, result])
+
+  const stats = useMemo(() => {
+    const list = tests.data ?? []
+    const pass = list.filter((t) => t.result === 'Pass').length
+    return {
+      total: list.length,
+      pass,
+      passRate: list.length ? (pass / list.length) * 100 : 0,
+      fails: list.filter((t) => t.result === 'Fail').length,
+      rework: list.filter((t) => t.result === 'Rework').length,
+    }
+  }, [tests.data])
 
   return (
     <PageContainer>
       <PageHeader
-        title="Lab Tests"
-        description="Shrinkage, colour fastness, pilling, bursting strength, spirality, GSM and pH, tested to ISO and ASTM methods."
+        title="Testing Laboratory Register"
+        description="Physical and chemical compliance verification: ISO 6330 shrinkage (3 cycles), color fastness to washing/rubbing, pilling, bursting strength, and Oeko-Tex Class I ecology certification."
       />
 
+      <StatGrid cols={4}>
+        <StatCard label="Total Lab Tests" value={stats.total} icon={FlaskConical} tone="brand" />
+        <StatCard label="Overall Pass Rate" value={formatPct(stats.passRate)} icon={CircleCheck} tone={stats.passRate > 88 ? 'success' : 'warning'} />
+        <StatCard label="Quarantine / Rework" value={stats.rework} icon={RotateCcw} tone="warning" />
+        <StatCard label="Critical Fails" value={stats.fails} icon={CircleX} tone={stats.fails > 0 ? 'danger' : 'default'} />
+      </StatGrid>
+
+      {/* Filter Toolbar */}
       <Card>
-        <CardHeader>
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <CardTitle>Test register</CardTitle>
+        <CardHeader className="pb-3 border-b border-border/60">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <FilterChipGroup>
+              {labTestCategories.map((cat) => (
+                <FilterChip key={cat} active={category === cat} onClick={() => setCategory(cat)}>
+                  {cat}
+                </FilterChip>
+              ))}
+            </FilterChipGroup>
+
             <FilterChipGroup>
               <FilterChip active={!result} onClick={() => setResult(null)}>
-                All results
+                All Results
               </FilterChip>
               {['Pass', 'Rework', 'Fail'].map((r) => (
                 <FilterChip key={r} active={result === r} tone={r === 'Fail' ? 'poppy' : 'brand'} onClick={() => setResult(r)}>
@@ -278,11 +507,23 @@ export function LabTests() {
         <CardContent>
           <DataTable
             columns={[
-              { key: 'testNo', header: 'Test', cell: (r) => <span className="font-medium">{r.testNo}</span> },
+              {
+                key: 'testNo',
+                header: 'Test Ref',
+                cell: (r) => (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedTest(r)}
+                    className="font-bold text-primary hover:underline"
+                  >
+                    {r.testNo}
+                  </button>
+                ),
+              },
               { key: 'stage', header: 'Stage', cell: (r) => <Badge variant="outline">{r.stage}</Badge> },
-              { key: 'testName', header: 'Test' },
+              { key: 'testName', header: 'Test Specification' },
               { key: 'standard', header: 'Standard' },
-              { key: 'tolerance', header: 'Tolerance' },
+              { key: 'tolerance', header: 'Buyer Tolerance' },
               { key: 'buyerName', header: 'Buyer' },
               { key: 'styleNo', header: 'Style' },
               {
@@ -292,16 +533,99 @@ export function LabTests() {
                 sortValue: (r) => new Date(r.testedDate).getTime(),
                 cell: (r) => formatDate(r.testedDate, 'dd MMM'),
               },
-              { key: 'testedBy', header: 'By' },
-              { key: 'remarks', header: 'Remarks', cell: (r) => <span className="text-muted-foreground">{r.remarks ?? '-'}</span> },
-              { key: 'result', header: 'Result', cell: (r) => <StatusBadge status={r.result} /> },
+              { key: 'testedBy', header: 'Technologist' },
+              { key: 'result', header: 'Verdict', cell: (r) => <StatusBadge status={r.result} /> },
+              {
+                key: 'action',
+                header: 'Action',
+                align: 'right',
+                cell: (r) => (
+                  <Button size="sm" variant="outline" onClick={() => setSelectedTest(r)}>
+                    Certificate
+                  </Button>
+                ),
+              },
             ]}
-            data={tests.data ?? []}
+            data={filteredTests}
             isLoading={tests.isLoading}
             pageSize={12}
           />
         </CardContent>
       </Card>
+
+      {/* Lab Specimen Certificate Modal */}
+      {selectedTest && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink-950/60 p-4 backdrop-blur-xs">
+          <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-border bg-card p-6 shadow-2xl">
+            <div className="flex items-start justify-between border-b border-border pb-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-display text-lg font-bold text-foreground">{selectedTest.testNo}</span>
+                  <StatusBadge status={selectedTest.result} />
+                  <Badge variant="brand">{selectedTest.category}</Badge>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Standard: <strong>{selectedTest.standard}</strong> • Stage: {selectedTest.stage}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedTest(null)}
+                className="rounded-lg p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="mt-4 space-y-4 text-xs">
+              <div className="grid grid-cols-2 gap-3 rounded-xl border border-border bg-secondary/30 p-3.5">
+                <div>
+                  <span className="text-muted-foreground">Buyer Account:</span>
+                  <div className="font-semibold text-foreground">{selectedTest.buyerName}</div>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Export Style:</span>
+                  <div className="font-semibold text-foreground">{selectedTest.styleNo}</div>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Lot / Batch No:</span>
+                  <div className="font-semibold text-foreground">{selectedTest.lotNo || 'N/A'}</div>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Testing Date:</span>
+                  <div className="font-semibold text-foreground">{formatDate(selectedTest.testedDate, 'dd MMM yyyy')}</div>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-border bg-card p-4">
+                <div className="font-semibold text-foreground">Parametric Test Values:</div>
+                <div className="mt-2 grid grid-cols-2 gap-3">
+                  <div>
+                    <span className="text-muted-foreground">Target / Standard:</span>
+                    <div className="font-mono text-sm font-bold text-foreground">{selectedTest.target || selectedTest.tolerance}</div>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Measured Value:</span>
+                    <div className={cn('font-mono text-sm font-bold', selectedTest.result === 'Pass' ? 'text-success-700' : 'text-danger-600')}>
+                      {selectedTest.measuredValue}
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-3 text-xs text-muted-foreground border-t border-border pt-2">
+                  Remarks: <strong className="text-foreground">{selectedTest.remarks}</strong>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between border-t border-border pt-4">
+                <span className="text-muted-foreground">Certified By: <strong>{selectedTest.testedBy}</strong></span>
+                <Button size="sm" variant="outline" onClick={() => setSelectedTest(null)}>
+                  Close Certificate
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </PageContainer>
   )
 }
@@ -309,78 +633,205 @@ export function LabTests() {
 /* ======================================================= FabricQuality ==== */
 
 export function FabricQuality() {
-  const fabric = useAsync(getFabricQuality, [])
+  const [selectedRoll, setSelectedRoll] = useState(null)
+  const rolls = useAsync(getFabricRollInspections, [])
+
+  const stats = useMemo(() => {
+    const list = rolls.data ?? []
+    const pass = list.filter((r) => r.verdict === 'Pass').length
+    const holds = list.filter((r) => r.verdict === 'Hold').length
+    const totalPoints = list.reduce((s, r) => s + r.pointsPer100SqYd, 0)
+    return {
+      total: list.length,
+      pass,
+      passRate: list.length ? (pass / list.length) * 100 : 0,
+      holds,
+      avgPointsPer100: list.length ? (totalPoints / list.length).toFixed(1) : 0,
+    }
+  }, [rolls.data])
 
   return (
     <PageContainer>
       <PageHeader
-        title="Fabric Quality"
-        description="The gate fabric must clear before cutting: greige and dyed fabric testing, plus any rolls currently held."
+        title="ASTM D5430 4-Point Fabric Inspection"
+        description="Roll-by-roll defect penalty mapping for knitted fabric rolls. Maximum allowable threshold: <= 28.0 penalty points per 100 sq. yards before release to the cutting room."
       />
 
-      {fabric.isLoading || !fabric.data ? (
-        <StatGridSkeleton count={3} />
-      ) : (
-        <StatGrid cols={3}>
-          <StatCard label="Fabric tests" value={fabric.data.total} icon={FlaskConical} tone="brand" />
-          <StatCard label="Pass rate" value={formatPct(fabric.data.passRatePct)} icon={CircleCheck} tone={fabric.data.passRatePct > 88 ? 'success' : 'warning'} />
-          <StatCard label="Rolls on hold" value={fabric.data.holds.length} icon={TriangleAlert} tone={fabric.data.holds.length > 0 ? 'danger' : 'default'} />
-        </StatGrid>
-      )}
+      <StatGrid cols={4}>
+        <StatCard label="Inspected Rolls" value={stats.total} icon={Layers} tone="brand" />
+        <StatCard label="4-Point Pass Rate" value={formatPct(stats.passRate)} icon={CircleCheck} tone={stats.passRate > 85 ? 'success' : 'warning'} />
+        <StatCard label="Quarantine Holds" value={stats.holds} icon={TriangleAlert} tone={stats.holds > 0 ? 'danger' : 'default'} />
+        <StatCard label="Average Penalty Pts" value={`${stats.avgPointsPer100} pts`} sublabel="Threshold < 28.0" icon={Scale} tone="info" />
+      </StatGrid>
+
+      {/* ASTM 4-Point Standard Formula Note */}
+      <Card className="border-border bg-slate-50/60 p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2 text-foreground font-medium">
+            <Info className="h-4 w-4 text-brand-600" />
+            <span>ASTM D5430 Standard Formula:</span>
+            <code className="rounded bg-background px-2 py-0.5 font-mono text-[11px] border border-border">
+              Points / 100 sq. yd = (Total Points × 3600) / (Width in inches × Length in yards)
+            </code>
+          </div>
+          <Badge variant="outline">Passing Standard: &le; 28.0 Points</Badge>
+        </div>
+      </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Fabric test register</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle>Fabric Roll Inspection Matrix</CardTitle>
+            <Badge variant="secondary">{rolls.data?.length || 48} Rolls Audited</Badge>
+          </div>
         </CardHeader>
         <CardContent>
           <DataTable
             columns={[
-              { key: 'testNo', header: 'Test', cell: (r) => <span className="font-medium">{r.testNo}</span> },
-              { key: 'stage', header: 'Stage', cell: (r) => <Badge variant="outline">{r.stage}</Badge> },
-              { key: 'testName', header: 'Test' },
-              { key: 'standard', header: 'Standard' },
+              {
+                key: 'rollBatch',
+                header: 'Roll Batch',
+                cell: (r) => (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedRoll(r)}
+                    className="font-bold text-primary hover:underline"
+                  >
+                    {r.rollBatch}
+                  </button>
+                ),
+              },
+              { key: 'fabricType', header: 'Fabric Construction' },
+              { key: 'colour', header: 'Colour & Shade', cell: (r) => <span>{r.colour} ({r.shadeLot})</span> },
               { key: 'buyerName', header: 'Buyer' },
               { key: 'styleNo', header: 'Style' },
+              { key: 'widthInches', header: 'Width', align: 'right', cell: (r) => `${r.widthInches}"` },
+              { key: 'lengthYards', header: 'Length', align: 'right', cell: (r) => `${r.lengthYards} yd` },
+              { key: 'defects', header: 'Defects', align: 'right', cell: (r) => r.defects?.length || 0 },
+              { key: 'totalPoints', header: 'Raw Pts', align: 'right', cell: (r) => r.totalPoints },
               {
-                key: 'testedDate',
-                header: 'Tested',
+                key: 'pointsPer100SqYd',
+                header: 'Pts / 100 sq.yd',
                 align: 'right',
-                sortValue: (r) => new Date(r.testedDate).getTime(),
-                cell: (r) => formatDate(r.testedDate, 'dd MMM'),
+                cell: (r) => (
+                  <span className={cn('font-bold', r.pointsPer100SqYd > 28.0 ? 'text-danger-600' : 'text-success-700')}>
+                    {r.pointsPer100SqYd}
+                  </span>
+                ),
               },
-              { key: 'result', header: 'Result', cell: (r) => <StatusBadge status={r.result} /> },
+              { key: 'verdict', header: 'Verdict', cell: (r) => <StatusBadge status={r.verdict} /> },
+              {
+                key: 'action',
+                header: 'Action',
+                align: 'right',
+                cell: (r) => (
+                  <Button size="sm" variant="outline" onClick={() => setSelectedRoll(r)}>
+                    Roll Visualizer
+                  </Button>
+                ),
+              },
             ]}
-            data={fabric.data?.rows ?? []}
-            isLoading={fabric.isLoading}
-            pageSize={10}
+            data={rolls.data ?? []}
+            isLoading={rolls.isLoading}
+            pageSize={12}
           />
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Rolls currently held</CardTitle>
-          <p className="text-xs text-muted-foreground">Fabric quarantined pending a shade or quality decision</p>
-        </CardHeader>
-        <CardContent>
-          <DataTable
-            columns={[
-              { key: 'rollBatch', header: 'Batch' },
-              { key: 'fabricType', header: 'Fabric' },
-              { key: 'colour', header: 'Colour' },
-              { key: 'shadeLot', header: 'Shade lot' },
-              { key: 'buyerName', header: 'Buyer' },
-              { key: 'quantityKg', header: 'Quantity', align: 'right', cell: (r) => `${formatNumber(r.quantityKg)} kg` },
-              { key: 'location', header: 'Location' },
-              { key: 'status', header: 'Status', cell: (r) => <StatusBadge status={r.status} /> },
-            ]}
-            data={fabric.data?.holds ?? []}
-            isLoading={fabric.isLoading}
-            pageSize={8}
-            emptyMessage="No fabric is currently held."
-          />
-        </CardContent>
-      </Card>
+      {/* Roll Defect Visualizer & Yard-by-Yard Map Modal */}
+      {selectedRoll && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink-950/60 p-4 backdrop-blur-xs">
+          <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-2xl border border-border bg-card p-6 shadow-2xl">
+            <div className="flex items-start justify-between border-b border-border pb-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-display text-xl font-bold text-foreground">{selectedRoll.rollBatch} Defect Map</span>
+                  <StatusBadge status={selectedRoll.verdict} />
+                  <Badge variant="brand">{selectedRoll.fabricType}</Badge>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Dye Lot: <strong>{selectedRoll.dyeLotNo}</strong> • Shade: {selectedRoll.shadeLot} • Width: {selectedRoll.widthInches}"
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedRoll(null)}
+                className="rounded-lg p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="mt-4 space-y-4 text-xs">
+              <div className="grid grid-cols-3 gap-3 rounded-xl border border-border bg-secondary/30 p-3.5">
+                <div>
+                  <span className="text-muted-foreground">Inspected Length:</span>
+                  <div className="font-bold text-foreground">{selectedRoll.lengthYards} yards ({selectedRoll.weightKg} kg)</div>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Total 4-Point Penalty:</span>
+                  <div className="font-bold text-foreground">{selectedRoll.totalPoints} points ({selectedRoll.defects.length} defects)</div>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Calculated Score:</span>
+                  <div className={cn('font-bold font-mono text-sm', selectedRoll.pointsPer100SqYd > 28 ? 'text-danger-600' : 'text-success-700')}>
+                    {selectedRoll.pointsPer100SqYd} pts / 100 sq.yd
+                  </div>
+                </div>
+              </div>
+
+              {/* Visual Roll Defect Timeline */}
+              <div className="rounded-xl border border-border bg-card p-4">
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-foreground">Linear Roll Defect Distribution (0 to {selectedRoll.lengthYards} yards)</span>
+                  <span className="text-[11px] text-muted-foreground">ASTM D5430 Defect Tags</span>
+                </div>
+                <div className="mt-3 relative h-10 w-full rounded-lg bg-secondary/80 border border-border flex items-center px-2">
+                  <span className="absolute left-2 text-[10px] text-muted-foreground font-mono">0 yd</span>
+                  <span className="absolute right-2 text-[10px] text-muted-foreground font-mono">{selectedRoll.lengthYards} yd</span>
+                  {selectedRoll.defects.map((d, i) => {
+                    const posPct = (d.yardPosition / selectedRoll.lengthYards) * 100
+                    return (
+                      <div
+                        key={i}
+                        className="absolute h-6 w-1.5 rounded-full bg-danger-500 hover:scale-150 transition cursor-pointer"
+                        style={{ left: `${posPct}%` }}
+                        title={`Yard ${d.yardPosition}: ${d.defectName}`}
+                      />
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Defect Register */}
+              <div className="rounded-xl border border-border bg-card p-4">
+                <div className="font-semibold text-foreground mb-2">Defect Logbook:</div>
+                <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+                  {selectedRoll.defects.map((d, i) => (
+                    <div key={i} className="flex items-center justify-between rounded-lg border border-border/60 bg-muted/20 px-3 py-1.5">
+                      <span>Yard {d.yardPosition} — <strong className="text-foreground">{d.defectName}</strong></span>
+                      <Badge variant={d.points >= 3 ? 'danger' : 'warning'}>{d.points} Points</Badge>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {selectedRoll.quarantineAction && (
+                <div className="rounded-xl border border-danger-200 bg-danger-50/40 p-3.5 text-danger-800">
+                  <strong>Quarantine Directive:</strong> {selectedRoll.quarantineAction}
+                </div>
+              )}
+
+              <div className="flex items-center justify-between border-t border-border pt-4">
+                <span className="text-muted-foreground">Inspector: <strong>{selectedRoll.inspector}</strong></span>
+                <Button size="sm" variant="outline" onClick={() => setSelectedRoll(null)}>
+                  Close Map
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </PageContainer>
   )
 }
@@ -407,25 +858,25 @@ export function InlineInspection() {
   return (
     <PageContainer>
       <PageHeader
-        title="Inline Inspection"
-        description="The sewing-floor gate, measured as defects per hundred units. Above 6% DHU the line is stopped and the last two hours held."
+        title="Inline Sewing Inspection (24 Lines DHU Gate)"
+        description="Defects per Hundred Units (DHU %) recorded hourly by roving floor QC inspectors. Lines exceeding 5.0% DHU trigger supervisor alerts; lines > 6.0% are halted immediately."
       />
 
       <StatGrid cols={5}>
-        <StatCard label="Reports" value={stats.reports} icon={ClipboardCheck} tone="brand" />
-        <StatCard label="Pieces checked" value={formatNumber(stats.checked)} icon={CircleCheck} tone="info" />
-        <StatCard label="Defects found" value={formatNumber(stats.defects)} icon={CircleX} tone="warning" />
-        <StatCard label="Overall DHU" value={formatPct(stats.dhu)} icon={TriangleAlert} tone={stats.dhu > 5 ? 'danger' : 'success'} />
-        <StatCard label="Lines stopped" value={stats.stopped} icon={RotateCcw} tone={stats.stopped > 0 ? 'danger' : 'default'} />
+        <StatCard label="QC Inspections" value={stats.reports} icon={ClipboardCheck} tone="brand" />
+        <StatCard label="Pieces Checked" value={formatNumber(stats.checked)} icon={CircleCheck} tone="info" />
+        <StatCard label="Defects Found" value={formatNumber(stats.defects)} icon={CircleX} tone="warning" />
+        <StatCard label="Overall Floor DHU" value={formatPct(stats.dhu)} icon={TriangleAlert} tone={stats.dhu > 5 ? 'danger' : 'success'} />
+        <StatCard label="Lines Stopped" value={stats.stopped} icon={RotateCcw} tone={stats.stopped > 0 ? 'danger' : 'default'} />
       </StatGrid>
 
       <Card>
         <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <CardTitle>Inspection register</CardTitle>
+            <CardTitle>Inline Inspection Logbook</CardTitle>
             <FilterChipGroup>
               <FilterChip active={!verdict} onClick={() => setVerdict(null)}>
-                All
+                All Verdicts
               </FilterChip>
               {['Pass', 'Rework', 'Stop Line'].map((v) => (
                 <FilterChip key={v} active={verdict === v} tone={v === 'Stop Line' ? 'poppy' : 'brand'} onClick={() => setVerdict(v)}>
@@ -439,24 +890,24 @@ export function InlineInspection() {
           <DataTable
             columns={[
               { key: 'reportNo', header: 'Report', cell: (r) => <span className="font-medium">{r.reportNo}</span> },
+              { key: 'lineNo', header: 'Sewing Line', cell: (r) => <span className="font-bold text-foreground">{r.lineNo}</span> },
               { key: 'unitName', header: 'Unit' },
-              { key: 'lineNo', header: 'Line' },
               { key: 'styleNo', header: 'Style' },
               { key: 'buyerName', header: 'Buyer' },
               { key: 'checkedPcs', header: 'Checked', align: 'right', cell: (r) => formatNumber(r.checkedPcs) },
               { key: 'defectsFound', header: 'Defects', align: 'right', cell: (r) => formatNumber(r.defectsFound) },
               {
                 key: 'dhuPct',
-                header: 'DHU',
+                header: 'DHU %',
                 align: 'right',
                 cell: (r) => (
-                  <span className={cn('font-semibold', r.dhuPct > 6 ? 'text-danger-600' : r.dhuPct > 3 ? 'text-warning-700' : 'text-success-700')}>
+                  <span className={cn('font-bold', r.dhuPct > 6 ? 'text-danger-600' : r.dhuPct > 3 ? 'text-warning-700' : 'text-success-700')}>
                     {r.dhuPct}%
                   </span>
                 ),
               },
-              { key: 'topDefect', header: 'Top defect' },
-              { key: 'inspector', header: 'Inspector' },
+              { key: 'topDefect', header: 'Top Defect' },
+              { key: 'inspector', header: 'QC Inspector' },
               {
                 key: 'inspectedAt',
                 header: 'Date',
@@ -480,7 +931,12 @@ export function InlineInspection() {
 
 export function AqlAudit() {
   const [verdict, setVerdict] = useState(null)
+  const [selectedAudit, setSelectedAudit] = useState(null)
+  const [simLotSize, setSimLotSize] = useState(5000)
+  const [simAqlLevel, setSimAqlLevel] = useState('AQL 1.5')
+
   const audits = useAsync(() => getAqlAudits(verdict ? { verdict } : {}), [verdict])
+  const simPlan = useAsync(() => getAqlSamplingCalculator(simLotSize, simAqlLevel), [simLotSize, simAqlLevel])
 
   const stats = useMemo(() => {
     const rows = audits.data ?? []
@@ -490,30 +946,88 @@ export function AqlAudit() {
       pass,
       passPct: rows.length ? (pass / rows.length) * 100 : 0,
       failed: rows.filter((r) => r.verdict === 'Fail').length,
+      reinspect: rows.filter((r) => r.verdict === 'Re-inspect').length,
     }
   }, [audits.data])
 
   return (
     <PageContainer>
       <PageHeader
-        title="Final AQL Audit"
-        description="The last gate before cartons are sealed, sampled to each buyer's own published AQL level."
+        title="Pre-Shipment Final AQL Audit & Certificate Console"
+        description="The final gate before export container stuffing. Statistically sampled according to ISO 2859-1 (ANSI/ASQ Z1.4) General Inspection Level II standards."
       />
 
       <StatGrid cols={4}>
-        <StatCard label="Audits" value={stats.total} icon={ClipboardCheck} tone="brand" />
-        <StatCard label="Passed" value={stats.pass} icon={CircleCheck} tone="success" />
-        <StatCard label="Pass rate" value={formatPct(stats.passPct)} icon={MiniBarIcon} tone={stats.passPct > 90 ? 'success' : 'warning'} />
-        <StatCard label="Failed" value={stats.failed} icon={CircleX} tone={stats.failed > 0 ? 'danger' : 'default'} />
+        <StatCard label="AQL Audits" value={stats.total} icon={ClipboardCheck} tone="brand" />
+        <StatCard label="Passed & Released" value={stats.pass} icon={ShieldCheck} tone="success" />
+        <StatCard label="AQL Pass Rate" value={formatPct(stats.passPct)} icon={CircleCheck} tone={stats.passPct > 90 ? 'success' : 'warning'} />
+        <StatCard label="Failed / On Hold" value={stats.failed} icon={CircleX} tone={stats.failed > 0 ? 'danger' : 'default'} />
       </StatGrid>
+
+      {/* Interactive ISO 2859-1 AQL Sampling Simulator */}
+      <Card className="border-brand-200 bg-linear-to-r from-brand-50/50 via-card to-card">
+        <CardHeader className="pb-3 border-b border-border/60">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Scale className="h-4.5 w-4.5 text-brand-600" />
+                ISO 2859-1 (ANSI/ASQ Z1.4) Sampling Plan Calculator
+              </CardTitle>
+              <p className="text-xs text-muted-foreground">
+                Enter export lot size to compute sample code letter, required sample size, and Accept ($Ac$) / Reject ($Re$) limits.
+              </p>
+            </div>
+            <Badge variant="brand">General Inspection Level II</Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div>
+              <label className="text-[11px] font-semibold text-muted-foreground uppercase">Export Lot Size (Pcs)</label>
+              <input
+                type="number"
+                value={simLotSize}
+                onChange={(e) => setSimLotSize(Math.max(50, parseInt(e.target.value, 10) || 500))}
+                className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-1.5 text-sm font-bold text-foreground"
+              />
+            </div>
+            <div>
+              <label className="text-[11px] font-semibold text-muted-foreground uppercase">Buyer Standard</label>
+              <select
+                value={simAqlLevel}
+                onChange={(e) => setSimAqlLevel(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-1.5 text-sm font-semibold text-foreground"
+              >
+                <option value="AQL 1.0">AQL 1.0 (Strict / High Value)</option>
+                <option value="AQL 1.5">AQL 1.5 (Standard Export)</option>
+                <option value="AQL 2.5">AQL 2.5 (Basic Garments)</option>
+              </select>
+            </div>
+            <div className="rounded-xl border border-border bg-background p-3">
+              <div className="text-[10px] font-semibold text-muted-foreground uppercase">Sample Code Letter & Size</div>
+              <div className="mt-1 font-display text-lg font-bold text-brand-700">
+                Code {simPlan.data?.codeLetter} • {simPlan.data?.sampleSize} Pcs
+              </div>
+              <div className="text-[11px] text-muted-foreground">~{Math.ceil((simPlan.data?.sampleSize || 200) / 24)} Cartons to pull</div>
+            </div>
+            <div className="rounded-xl border border-border bg-background p-3">
+              <div className="text-[10px] font-semibold text-muted-foreground uppercase">Accept / Reject Limit</div>
+              <div className="mt-1 font-display text-lg font-bold text-success-700">
+                Ac &le; {simPlan.data?.acceptLimit} / Re &ge; {simPlan.data?.rejectLimit}
+              </div>
+              <div className="text-[11px] text-muted-foreground">Critical Defects: 0 Allowed</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <CardTitle>Audit register</CardTitle>
+            <CardTitle>Pre-Shipment Audit Register</CardTitle>
             <FilterChipGroup>
               <FilterChip active={!verdict} onClick={() => setVerdict(null)}>
-                All
+                All Audits
               </FilterChip>
               {['Pass', 'Re-inspect', 'Fail'].map((v) => (
                 <FilterChip key={v} active={verdict === v} tone={v === 'Fail' ? 'poppy' : 'brand'} onClick={() => setVerdict(v)}>
@@ -526,26 +1040,37 @@ export function AqlAudit() {
         <CardContent>
           <DataTable
             columns={[
-              { key: 'auditNo', header: 'Audit', cell: (r) => <span className="font-medium">{r.auditNo}</span> },
+              {
+                key: 'auditNo',
+                header: 'Audit Ref',
+                cell: (r) => (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedAudit(r)}
+                    className="font-bold text-primary hover:underline"
+                  >
+                    {r.auditNo}
+                  </button>
+                ),
+              },
               { key: 'orderNo', header: 'Order' },
               { key: 'buyerName', header: 'Buyer' },
               { key: 'styleNo', header: 'Style' },
-              { key: 'unitName', header: 'Unit' },
               { key: 'aqlLevel', header: 'AQL', cell: (r) => <Badge variant="info">{r.aqlLevel}</Badge> },
-              { key: 'lotSize', header: 'Lot', align: 'right', cell: (r) => formatNumber(r.lotSize) },
-              { key: 'sampleSize', header: 'Sample', align: 'right' },
+              { key: 'lotSize', header: 'Lot Size', align: 'right', cell: (r) => formatNumber(r.lotSize) },
+              { key: 'sampleSize', header: 'Sample', align: 'right', cell: (r) => `${r.sampleSize} pcs` },
               {
                 key: 'majorDefects',
-                header: 'Major',
+                header: 'Major Defect',
                 align: 'right',
                 cell: (r) => (
-                  <span className={cn('font-semibold', r.majorDefects > r.acceptLimit ? 'text-danger-600' : 'text-foreground')}>
+                  <span className={cn('font-bold', r.majorDefects > r.acceptLimit ? 'text-danger-600' : 'text-success-700')}>
                     {r.majorDefects} / {r.acceptLimit}
                   </span>
                 ),
               },
               { key: 'minorDefects', header: 'Minor', align: 'right' },
-              { key: 'auditor', header: 'Auditor' },
+              { key: 'auditor', header: 'Auditor Agency' },
               {
                 key: 'auditedAt',
                 header: 'Date',
@@ -554,6 +1079,16 @@ export function AqlAudit() {
                 cell: (r) => formatDate(r.auditedAt, 'dd MMM'),
               },
               { key: 'verdict', header: 'Verdict', cell: (r) => <StatusBadge status={r.verdict} /> },
+              {
+                key: 'action',
+                header: 'Certificate',
+                align: 'right',
+                cell: (r) => (
+                  <Button size="sm" variant="outline" onClick={() => setSelectedAudit(r)}>
+                    View Release
+                  </Button>
+                ),
+              },
             ]}
             data={audits.data ?? []}
             isLoading={audits.isLoading}
@@ -561,13 +1096,94 @@ export function AqlAudit() {
           />
         </CardContent>
       </Card>
+
+      {/* Official AQL Inspection Release Certificate Modal */}
+      {selectedAudit && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink-950/60 p-4 backdrop-blur-xs">
+          <div className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-border bg-card p-6 shadow-2xl">
+            <div className="flex items-start justify-between border-b border-border pb-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-display text-xl font-bold text-foreground">
+                    Pre-Shipment Inspection Certificate ({selectedAudit.auditNo})
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Poppys Knitwear (P) Limited — Quality Assurance Directorate
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedAudit(null)}
+                className="rounded-lg p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="mt-4 space-y-4 text-xs">
+              <div className="flex items-center justify-between rounded-xl border border-border bg-secondary/30 p-4">
+                <div>
+                  <div className="text-xs text-muted-foreground">Release Status:</div>
+                  <div className={cn('text-base font-bold', selectedAudit.verdict === 'Pass' ? 'text-success-700' : 'text-danger-600')}>
+                    {selectedAudit.containerReleaseStatus}
+                  </div>
+                </div>
+                <Badge variant={selectedAudit.verdict === 'Pass' ? 'success' : 'danger'} className="text-sm px-3 py-1">
+                  {selectedAudit.verdict.toUpperCase()}
+                </Badge>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 rounded-xl border border-border bg-card p-4">
+                <div>
+                  <span className="text-muted-foreground">Buyer Account:</span>
+                  <div className="font-semibold text-foreground">{selectedAudit.buyerName}</div>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Order & Style:</span>
+                  <div className="font-semibold text-foreground">{selectedAudit.orderNo} ({selectedAudit.styleNo})</div>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Lot Quantity:</span>
+                  <div className="font-semibold text-foreground">{formatNumber(selectedAudit.lotSize)} pcs ({selectedAudit.totalCartons} Cartons)</div>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Inspected Sample:</span>
+                  <div className="font-semibold text-foreground">{selectedAudit.sampleSize} pcs ({selectedAudit.cartonChecked} Cartons)</div>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">AQL Standard:</span>
+                  <div className="font-semibold text-brand-700">{selectedAudit.aqlLevel} (Ac: {selectedAudit.acceptLimit} / Re: {selectedAudit.rejectLimit})</div>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Defects Found:</span>
+                  <div className="font-semibold text-foreground">
+                    Critical: {selectedAudit.criticalDefects}, Major: {selectedAudit.majorDefects}, Minor: {selectedAudit.minorDefects}
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-border bg-slate-50/70 p-3.5">
+                <span className="text-muted-foreground">Auditing Agency & Credential:</span>
+                <div className="font-bold text-foreground mt-0.5">{selectedAudit.auditor}</div>
+                <div className="text-muted-foreground mt-1">Audit Conducted on: {formatDate(selectedAudit.auditedAt, 'dd MMMM yyyy')}</div>
+              </div>
+
+              <div className="flex items-center justify-between border-t border-border pt-4">
+                <Button size="sm" variant="outline" className="gap-1.5" onClick={() => window.print()}>
+                  <Printer className="h-3.5 w-3.5" />
+                  Print Official Certificate
+                </Button>
+                <Button size="sm" variant="brand" onClick={() => setSelectedAudit(null)}>
+                  Close Inspection
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </PageContainer>
   )
-}
-
-/** Small local icon alias so the stat row reads consistently. */
-function MiniBarIcon(props) {
-  return <ClipboardCheck {...props} />
 }
 
 /* ========================================================== Rejections ==== */
@@ -590,17 +1206,20 @@ export function Rejections() {
 
   return (
     <PageContainer>
-      <PageHeader title="Rejections" description="Pieces rejected at each stage, with disposition and the value written off." />
+      <PageHeader
+        title="Scrap & Rejection Register"
+        description="Pieces rejected across all 9 production departments with disposition (Scrap, Rework, Downgrade to Seconds) and financial write-off at FOB value."
+      />
 
       <StatGrid cols={3}>
-        <StatCard label="Rejected pieces" value={formatNumber(total)} icon={Trash2} tone="danger" />
-        <StatCard label="Value at FOB" value={formatUsdCompact(value)} icon={CircleX} tone="warning" />
-        <StatCard label="Records" value={(rejections.data ?? []).length} icon={ClipboardCheck} tone="brand" />
+        <StatCard label="Rejected Pieces" value={formatNumber(total)} icon={Trash2} tone="danger" />
+        <StatCard label="FOB Value Written Off" value={formatUsdCompact(value)} icon={CircleX} tone="warning" />
+        <StatCard label="Logged Incidents" value={(rejections.data ?? []).length} icon={ClipboardCheck} tone="brand" />
       </StatGrid>
 
       <Card>
         <CardHeader>
-          <CardTitle>Rejections by stage</CardTitle>
+          <CardTitle>Rejection Distribution by Department</CardTitle>
         </CardHeader>
         <CardContent>
           {rejections.isLoading ? (
@@ -627,7 +1246,7 @@ export function Rejections() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Rejection register</CardTitle>
+          <CardTitle>Rejection Logbook</CardTitle>
         </CardHeader>
         <CardContent>
           <DataTable
@@ -637,9 +1256,9 @@ export function Rejections() {
               { key: 'styleNo', header: 'Style' },
               { key: 'stage', header: 'Stage', cell: (r) => <Badge variant="outline">{r.stage}</Badge> },
               { key: 'unitName', header: 'Unit' },
-              { key: 'reason', header: 'Reason' },
+              { key: 'reason', header: 'Defect Reason' },
               { key: 'qtyPcs', header: 'Pieces', align: 'right', cell: (r) => formatNumber(r.qtyPcs) },
-              { key: 'valueUsd', header: 'Value', align: 'right', cell: (r) => formatUsdCompact(r.valueUsd) },
+              { key: 'valueUsd', header: 'FOB Write-off', align: 'right', cell: (r) => formatUsdCompact(r.valueUsd) },
               { key: 'disposition', header: 'Disposition', cell: (r) => <StatusBadge status={r.disposition} /> },
               {
                 key: 'reportedAt',
@@ -663,22 +1282,69 @@ export function Rejections() {
 
 export function Complaints() {
   const [status, setStatus] = useState(null)
-  const complaints = useAsync(() => getComplaints(status ? { status } : {}), [status])
+  const [selectedCapa, setSelectedCapa] = useState(null)
+
+  const complaintsList = useAsync(() => getComplaints(status ? { status } : {}), [status])
+  const capaCases = useAsync(getEightDCapaCases, [])
 
   return (
     <PageContainer>
       <PageHeader
-        title="Buyer Complaints"
-        description="Issues raised after delivery, tracked to root cause and closure."
+        title="Buyer Complaints & 8D CAPA Resolution Engine"
+        description="Closed-loop Root Cause Analysis (RCA) and 8D Corrective & Preventive Actions (CAPA) resolving buyer quality complaints with 5-Whys diagrams and preventive process locks."
       />
+
+      {/* 8D Problem Solving Lifecycle Pipeline Cards */}
+      <Card className="border-brand-200 bg-linear-to-r from-brand-50/50 via-card to-card">
+        <CardHeader className="pb-3 border-b border-border/60">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <AlertOctagon className="h-4.5 w-4.5 text-brand-600" />
+                Active 8D CAPA Root-Cause Cases
+              </CardTitle>
+              <p className="text-xs text-muted-foreground">
+                Formal 8-Discipline problem-solving records linked to buyer complaints
+              </p>
+            </div>
+            <Badge variant="brand">{capaCases.data?.length || 3} Active CAPAs</Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-4">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+            {(capaCases.data ?? []).map((c) => (
+              <div
+                key={c.id}
+                onClick={() => setSelectedCapa(c)}
+                className="cursor-pointer rounded-xl border border-border bg-card p-4 transition-all hover:border-brand-400 hover:shadow-sm"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <span className="font-mono text-xs font-bold text-brand-700">{c.id}</span>
+                  <Badge variant={c.status.includes('Closed') ? 'success' : 'warning'}>{c.status}</Badge>
+                </div>
+                <div className="mt-1 font-semibold text-foreground text-xs line-clamp-1">{c.title}</div>
+                <div className="mt-1 text-[11px] text-muted-foreground">
+                  Buyer: <strong className="text-foreground">{c.buyerName}</strong> ({c.styleNo})
+                </div>
+                <div className="mt-2 flex items-center justify-between text-[11px] border-t border-border pt-2">
+                  <span className="text-danger-600 font-bold">{formatUsdCompact(c.copqExposureUsd)} Exposure</span>
+                  <span className="text-primary font-medium flex items-center gap-0.5">
+                    View 8D Steps <ChevronRight className="h-3 w-3" />
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <CardTitle>Complaint register</CardTitle>
+            <CardTitle>Buyer Complaint Register</CardTitle>
             <FilterChipGroup>
               <FilterChip active={!status} onClick={() => setStatus(null)}>
-                All
+                All Statuses
               </FilterChip>
               {['Open', 'Investigating', 'Resolved', 'Closed'].map((s) => (
                 <FilterChip key={s} active={status === s} tone={s === 'Open' ? 'poppy' : 'brand'} onClick={() => setStatus(s)}>
@@ -706,7 +1372,7 @@ export function Complaints() {
                   </Badge>
                 ),
               },
-              { key: 'description', header: 'Description' },
+              { key: 'description', header: 'Defect Description' },
               { key: 'owner', header: 'Owner' },
               {
                 key: 'raisedAt',
@@ -717,12 +1383,88 @@ export function Complaints() {
               },
               { key: 'status', header: 'Status', cell: (r) => <StatusBadge status={r.status} /> },
             ]}
-            data={complaints.data ?? []}
-            isLoading={complaints.isLoading}
+            data={complaintsList.data ?? []}
+            isLoading={complaintsList.isLoading}
             pageSize={12}
           />
         </CardContent>
       </Card>
+
+      {/* 8D Problem Solving Detail Modal Drawer */}
+      {selectedCapa && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink-950/60 p-4 backdrop-blur-xs">
+          <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-2xl border border-border bg-card p-6 shadow-2xl">
+            <div className="flex items-start justify-between border-b border-border pb-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-display text-lg font-bold text-foreground">
+                    8D Root Cause Analysis: {selectedCapa.id}
+                  </span>
+                  <Badge variant="brand">{selectedCapa.buyerName}</Badge>
+                  <Badge variant={selectedCapa.status.includes('Closed') ? 'success' : 'warning'}>{selectedCapa.status}</Badge>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Style: <strong>{selectedCapa.styleNo}</strong> • Order: {selectedCapa.orderNo} • Ref: {selectedCapa.complaintRef}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedCapa(null)}
+                className="rounded-lg p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="mt-4 space-y-3.5 text-xs">
+              <div className="rounded-xl border border-border bg-secondary/30 p-3.5">
+                <div className="font-bold text-foreground text-sm">{selectedCapa.title}</div>
+                <div className="text-muted-foreground mt-1"><strong>D1 Team:</strong> {selectedCapa.d1_team}</div>
+                <div className="text-muted-foreground mt-1"><strong>D2 Problem Statement:</strong> {selectedCapa.d2_problem}</div>
+              </div>
+
+              <div className="rounded-xl border border-warning-200 bg-warning-50/40 p-3.5">
+                <strong className="text-warning-800">D3 Immediate Containment Action:</strong>
+                <p className="mt-1 text-muted-foreground">{selectedCapa.d3_containment}</p>
+              </div>
+
+              <div className="rounded-xl border border-border bg-card p-4">
+                <strong className="text-foreground">D4 5-Whys Root Cause Analysis:</strong>
+                <div className="mt-2 space-y-1">
+                  {selectedCapa.d4_rootCause5Whys.map((why, i) => (
+                    <div key={i} className="rounded-lg bg-muted/30 px-3 py-1.5 font-mono text-[11px] text-foreground">
+                      {why}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="rounded-xl border border-success-200 bg-success-50/30 p-3.5">
+                  <strong className="text-success-800">D5 Corrective Action:</strong>
+                  <p className="mt-1 text-muted-foreground">{selectedCapa.d5_correctiveAction}</p>
+                </div>
+                <div className="rounded-xl border border-info-200 bg-info-50/30 p-3.5">
+                  <strong className="text-info-700">D6 Validation & Testing:</strong>
+                  <p className="mt-1 text-muted-foreground">{selectedCapa.d6_validation}</p>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-brand-200 bg-brand-50/30 p-3.5">
+                <strong className="text-brand-800">D7 Preventive Systemic Lock:</strong>
+                <p className="mt-1 text-muted-foreground">{selectedCapa.d7_preventiveAction}</p>
+              </div>
+
+              <div className="flex items-center justify-between border-t border-border pt-3">
+                <span className="text-muted-foreground"><strong>D8 Sign-off:</strong> {selectedCapa.d8_signOff}</span>
+                <Button size="sm" variant="brand" onClick={() => setSelectedCapa(null)}>
+                  Close 8D Review
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </PageContainer>
   )
 }

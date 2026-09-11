@@ -80,9 +80,9 @@ export function KpiCard({ kpi }) {
 
   return (
     <Link to={kpi.linkTo} className="group block h-full">
-      <Card className="hover-lift relative h-full p-4">
-        {/* Hairline accent that warms up on hover */}
-        <span className="absolute inset-x-0 top-0 h-0.5 bg-linear-to-r from-brand-400 to-poppy-400 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+      <Card className="hover-lift relative h-full overflow-hidden rounded-xl p-4">
+        {/* Top highlighting accent bar with rounded boundary containment */}
+        <span className="absolute inset-x-0 top-0 h-1 bg-linear-to-r from-brand-500 via-brand-400 to-poppy-500 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
         <div className="flex items-center gap-2.5">
           <div

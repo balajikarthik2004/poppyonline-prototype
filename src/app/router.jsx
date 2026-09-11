@@ -39,13 +39,16 @@ import {
   SpareParts,
 } from '@/pages/maintenance'
 import { EnergyDashboard } from '@/pages/energy'
-import { Administration, Compliance } from '@/pages/admin'
+import { Compliance } from '@/pages/compliance'
+import { Administration } from '@/pages/admin'
 import {
   MasterStyles,
   MasterBuyers,
   MasterSuppliers,
   MasterMachines,
   MasterYarnLots,
+  MasterDefects,
+  MasterPorts,
 } from '@/pages/master'
 
 /** Every leaf in the navigation tree resolves to a real, data-backed page. */
@@ -99,13 +102,15 @@ export const routes = [
   { path: 'maintenance/spare-parts', element: <SpareParts /> },
 
   { path: 'energy', element: <EnergyDashboard /> },
-  { path: 'compliance', element: <Compliance /> },
+  // { path: 'compliance', element: <Compliance /> },
 
   { path: 'master/styles', element: <MasterStyles /> },
   { path: 'master/buyers', element: <MasterBuyers /> },
   { path: 'master/suppliers', element: <MasterSuppliers /> },
   { path: 'master/machines', element: <MasterMachines /> },
   { path: 'master/yarn-lots', element: <MasterYarnLots /> },
+  { path: 'master/defects', element: <MasterDefects /> },
+  { path: 'master/ports', element: <MasterPorts /> },
 
   { path: 'admin', element: <Administration /> },
 ]
