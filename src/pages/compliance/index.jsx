@@ -25,6 +25,7 @@ import {
   X,
   Zap,
 } from 'lucide-react'
+import { PoppysComplianceIcon } from '@/components/icons'
 
 import { useAsync } from '@/hooks/useAsync'
 import {
@@ -81,6 +82,7 @@ export function Compliance() {
   return (
     <PageContainer>
       <PageHeader
+        icon={PoppysComplianceIcon}
         title="Enterprise Compliance, ESG & Factory Audit Hub"
         description="Global social compliance (Sedex SMETA, amfori BSCI), product ecology certifications (Oeko-Tex Standard 100 Class I, GOTS Organic), ISO 9001 quality audit registers, and ESG sustainability governance."
       />

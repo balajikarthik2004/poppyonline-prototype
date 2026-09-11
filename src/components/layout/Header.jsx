@@ -158,7 +158,7 @@ export function Header({ onMenuClick }) {
               <div className="hidden text-left leading-tight md:block">
                 <div className="text-xs font-semibold text-foreground">
                   {userRole === 'MD'
-                    ? 'Dr. C. Sakthivel'
+                    ? 'Sakthivel'
                     : userRole === 'GM'
                     ? 'S. Rajagopalan'
                     : userRole === 'Merchandiser'

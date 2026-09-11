@@ -21,7 +21,7 @@ export const initialAuditLogs = [
   {
     id: 'AUD-10481',
     timestamp: '2026-09-10T14:18:22.000Z',
-    user: 'Dr. C. Sakthivel',
+    user: 'Sakthivel',
     role: 'MD',
     action: 'Approved',
     entity: 'BOM-STY-0014-v1_1',
@@ -105,7 +105,7 @@ export const initialAuditLogs = [
   {
     id: 'AUD-10475',
     timestamp: '2026-09-09T16:20:05.000Z',
-    user: 'Dr. C. Sakthivel',
+    user: 'Sakthivel',
     role: 'MD',
     action: 'Permission Changed',
     entity: 'RBAC Policy Matrix',

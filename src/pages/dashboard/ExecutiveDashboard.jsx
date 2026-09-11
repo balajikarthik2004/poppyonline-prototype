@@ -19,12 +19,17 @@ import {
   ArrowRight,
   Boxes,
   CheckCircle2,
+  CircleDollarSign,
   Clock,
+  Coins,
+  Disc,
   Droplets,
   Factory,
   Gauge,
+  Layers,
   Leaf,
   Package,
+  PackageCheck,
   Ship,
   TrendingUp,
   Wrench,
@@ -500,10 +505,10 @@ export default function ExecutiveDashboard() {
             ) : (
               <div className="space-y-2.5">
                 {[
-                  { label: 'Yarn', value: `${formatNumber(Math.round(inventory.data.yarnKg / 1000))} t`, to: '/inventory/yarn', icon: Boxes },
-                  { label: 'Fabric', value: `${formatNumber(Math.round(inventory.data.fabricKg / 1000))} t`, to: '/inventory/fabric', icon: Boxes },
+                  { label: 'Yarn', value: `${formatNumber(Math.round(inventory.data.yarnKg / 1000))} t`, to: '/inventory/yarn', icon: Disc },
+                  { label: 'Fabric', value: `${formatNumber(Math.round(inventory.data.fabricKg / 1000))} t`, to: '/inventory/fabric', icon: Layers },
                   { label: 'Work in progress', value: `${formatNumber(inventory.data.wipPcs)} pcs`, to: '/inventory/wip', icon: Factory },
-                  { label: 'Finished goods', value: `${formatNumber(inventory.data.fgPcs)} pcs`, to: '/inventory/finished-goods', icon: Package },
+                  { label: 'Finished goods', value: `${formatNumber(inventory.data.fgPcs)} pcs`, to: '/inventory/finished-goods', icon: PackageCheck },
                 ].map((row) => (
                   <Link
                     key={row.label}
@@ -525,7 +530,7 @@ export default function ExecutiveDashboard() {
                 )}
                 <div className="flex items-center justify-between rounded-lg bg-secondary/50 px-2.5 py-2 text-xs border border-border/40">
                   <span className="flex items-center gap-1.5 text-muted-foreground font-medium">
-                    <Boxes className="h-3.5 w-3.5 text-brand-600" />
+                    <Coins className="h-3.5 w-3.5 text-brand-600" />
                     <span>Stores Valuation</span>
                   </span>
                   <span className="num font-bold text-foreground">

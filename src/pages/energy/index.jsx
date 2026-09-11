@@ -31,6 +31,7 @@ import {
   Wind,
   Zap,
 } from 'lucide-react'
+import { PoppysEnergyIcon } from '@/components/icons'
 
 import { useAsync } from '@/hooks/useAsync'
 import { useAppStore } from '@/store/appStore'
@@ -56,6 +57,7 @@ export function EnergyDashboard() {
   return (
     <PageContainer>
       <PageHeader
+        icon={PoppysEnergyIcon}
         title="Smart Energy, SEC & Zero Liquid Discharge (ZLD) Hub"
         description="Departmental Specific Energy Consumption (SEC kWh/kg), 2-stage RO water mass balance, rooftop solar grid injection, and biomass boiler efficiency."
       />

@@ -45,6 +45,17 @@ import {
   getRejections,
 } from '@/services'
 import {
+  PoppysQualityIcon,
+  PoppysLabIcon,
+  PoppysFabricInspectionIcon,
+  PoppysSewingIcon,
+  PoppysCheckingIcon,
+  PoppysAqlIcon,
+  PoppysRejectionsIcon,
+  PoppysDefectsIcon,
+  PoppysCapaIcon,
+} from '@/components/icons'
+import {
   FilterChip,
   FilterChipGroup,
   PageContainer,
@@ -120,6 +131,7 @@ export function QualityDashboard() {
   return (
     <PageContainer>
       <PageHeader
+        icon={PoppysQualityIcon}
         title="Quality Assurance & QMS Command Center"
         description="The Closed-Loop Quality Management System (QMS) linking the laboratory, 4-point fabric rolls, inline sewing DHU, final AQL audits, and 8D CAPA root-cause resolution."
         actions={
@@ -149,7 +161,7 @@ export function QualityDashboard() {
             label="Lab Tests Cleared"
             value={formatNumber(summary.data.total)}
             sublabel={`Pass rate ${formatPct(summary.data.passRatePct)}`}
-            icon={FlaskConical}
+            icon={PoppysLabIcon}
             tone="info"
             to="/quality/lab-tests"
           />
@@ -165,7 +177,7 @@ export function QualityDashboard() {
             label="AQL 1.5/2.5 Pass Rate"
             value={formatPct(summary.data.aqlPassRatePct)}
             sublabel="Pre-shipment audit gate"
-            icon={ShieldCheck}
+            icon={PoppysAqlIcon}
             tone="brand"
             to="/quality/aql"
           />
@@ -173,7 +185,7 @@ export function QualityDashboard() {
             label="4-Point Fabric Holds"
             value="3 Rolls"
             sublabel="ASTM D5430 > 28 pts"
-            icon={Layers}
+            icon={PoppysFabricInspectionIcon}
             tone="warning"
             to="/quality/fabric"
           />
@@ -181,7 +193,7 @@ export function QualityDashboard() {
             label="Total Scrap & Rejection"
             value={formatNumber(summary.data.rejectionPcs)}
             sublabel={formatUsdCompact(summary.data.rejectionValueUsd)}
-            icon={Trash2}
+            icon={PoppysRejectionsIcon}
             tone="danger"
             to="/quality/rejections"
           />
@@ -189,7 +201,7 @@ export function QualityDashboard() {
             label="Active 8D CAPA Cases"
             value={summary.data.activeCapaCount || 3}
             sublabel="Root-cause resolution"
-            icon={AlertOctagon}
+            icon={PoppysCapaIcon}
             tone="poppy"
             to="/quality/complaints"
           />
@@ -469,12 +481,13 @@ export function LabTests() {
   return (
     <PageContainer>
       <PageHeader
+        icon={PoppysLabIcon}
         title="Testing Laboratory Register"
         description="Physical and chemical compliance verification: ISO 6330 shrinkage (3 cycles), color fastness to washing/rubbing, pilling, bursting strength, and Oeko-Tex Class I ecology certification."
       />
 
       <StatGrid cols={4}>
-        <StatCard label="Total Lab Tests" value={stats.total} icon={FlaskConical} tone="brand" />
+        <StatCard label="Total Lab Tests" value={stats.total} icon={PoppysLabIcon} tone="brand" />
         <StatCard label="Overall Pass Rate" value={formatPct(stats.passRate)} icon={CircleCheck} tone={stats.passRate > 88 ? 'success' : 'warning'} />
         <StatCard label="Quarantine / Rework" value={stats.rework} icon={RotateCcw} tone="warning" />
         <StatCard label="Critical Fails" value={stats.fails} icon={CircleX} tone={stats.fails > 0 ? 'danger' : 'default'} />
@@ -653,12 +666,13 @@ export function FabricQuality() {
   return (
     <PageContainer>
       <PageHeader
+        icon={PoppysFabricInspectionIcon}
         title="ASTM D5430 4-Point Fabric Inspection"
         description="Roll-by-roll defect penalty mapping for knitted fabric rolls. Maximum allowable threshold: <= 28.0 penalty points per 100 sq. yards before release to the cutting room."
       />
 
       <StatGrid cols={4}>
-        <StatCard label="Inspected Rolls" value={stats.total} icon={Layers} tone="brand" />
+        <StatCard label="Inspected Rolls" value={stats.total} icon={PoppysFabricInspectionIcon} tone="brand" />
         <StatCard label="4-Point Pass Rate" value={formatPct(stats.passRate)} icon={CircleCheck} tone={stats.passRate > 85 ? 'success' : 'warning'} />
         <StatCard label="Quarantine Holds" value={stats.holds} icon={TriangleAlert} tone={stats.holds > 0 ? 'danger' : 'default'} />
         <StatCard label="Average Penalty Pts" value={`${stats.avgPointsPer100} pts`} sublabel="Threshold < 28.0" icon={Scale} tone="info" />
@@ -858,6 +872,7 @@ export function InlineInspection() {
   return (
     <PageContainer>
       <PageHeader
+        icon={PoppysSewingIcon}
         title="Inline Sewing Inspection (24 Lines DHU Gate)"
         description="Defects per Hundred Units (DHU %) recorded hourly by roving floor QC inspectors. Lines exceeding 5.0% DHU trigger supervisor alerts; lines > 6.0% are halted immediately."
       />
@@ -953,12 +968,13 @@ export function AqlAudit() {
   return (
     <PageContainer>
       <PageHeader
+        icon={PoppysAqlIcon}
         title="Pre-Shipment Final AQL Audit & Certificate Console"
         description="The final gate before export container stuffing. Statistically sampled according to ISO 2859-1 (ANSI/ASQ Z1.4) General Inspection Level II standards."
       />
 
       <StatGrid cols={4}>
-        <StatCard label="AQL Audits" value={stats.total} icon={ClipboardCheck} tone="brand" />
+        <StatCard label="AQL Audits" value={stats.total} icon={PoppysAqlIcon} tone="brand" />
         <StatCard label="Passed & Released" value={stats.pass} icon={ShieldCheck} tone="success" />
         <StatCard label="AQL Pass Rate" value={formatPct(stats.passPct)} icon={CircleCheck} tone={stats.passPct > 90 ? 'success' : 'warning'} />
         <StatCard label="Failed / On Hold" value={stats.failed} icon={CircleX} tone={stats.failed > 0 ? 'danger' : 'default'} />
@@ -1207,12 +1223,13 @@ export function Rejections() {
   return (
     <PageContainer>
       <PageHeader
+        icon={PoppysRejectionsIcon}
         title="Scrap & Rejection Register"
         description="Pieces rejected across all 9 production departments with disposition (Scrap, Rework, Downgrade to Seconds) and financial write-off at FOB value."
       />
 
       <StatGrid cols={3}>
-        <StatCard label="Rejected Pieces" value={formatNumber(total)} icon={Trash2} tone="danger" />
+        <StatCard label="Rejected Pieces" value={formatNumber(total)} icon={PoppysRejectionsIcon} tone="danger" />
         <StatCard label="FOB Value Written Off" value={formatUsdCompact(value)} icon={CircleX} tone="warning" />
         <StatCard label="Logged Incidents" value={(rejections.data ?? []).length} icon={ClipboardCheck} tone="brand" />
       </StatGrid>
@@ -1290,6 +1307,7 @@ export function Complaints() {
   return (
     <PageContainer>
       <PageHeader
+        icon={PoppysCapaIcon}
         title="Buyer Complaints & 8D CAPA Resolution Engine"
         description="Closed-loop Root Cause Analysis (RCA) and 8D Corrective & Preventive Actions (CAPA) resolving buyer quality complaints with 5-Whys diagrams and preventive process locks."
       />

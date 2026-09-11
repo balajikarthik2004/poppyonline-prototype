@@ -52,6 +52,18 @@ import {
 } from '@/services'
 import { processStages } from '@/mock/units'
 import {
+  PoppysKnittingIcon,
+  PoppysDyeingIcon,
+  PoppysCompactingIcon,
+  PoppysCuttingIcon,
+  PoppysPrintingIcon,
+  PoppysEmbroideryIcon,
+  PoppysSewingIcon,
+  PoppysCheckingIcon,
+  PoppysPackagingIcon,
+  PoppysProductionIcon,
+} from '@/components/icons'
+import {
   PageContainer,
   PageHeader,
   StatCard,
@@ -61,6 +73,18 @@ import {
   FilterChip,
   FilterChipGroup,
 } from '@/components/common'
+
+export const stageIconMap = {
+  knitting: PoppysKnittingIcon,
+  dyeing: PoppysDyeingIcon,
+  compacting: PoppysCompactingIcon,
+  cutting: PoppysCuttingIcon,
+  printing: PoppysPrintingIcon,
+  embroidery: PoppysEmbroideryIcon,
+  sewing: PoppysSewingIcon,
+  checking: PoppysCheckingIcon,
+  packing: PoppysPackagingIcon,
+}
 import { DataTable, MiniBar, StatusBadge } from '@/components/tables'
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Progress, Skeleton } from '@/components/ui'
 import { formatNumber, formatPct } from '@/lib/format'
@@ -118,6 +142,7 @@ export function ProductionOverview() {
   return (
     <PageContainer>
       <PageHeader
+        icon={PoppysProductionIcon}
         title="Manufacturing Execution & Command Center"
         description="Factory-level operational command connecting Capacity, Machines, Hourly Run-Rates, WIP Buffer Aging, and Orders at Risk."
         actions={
@@ -140,7 +165,7 @@ export function ProductionOverview() {
             label="Fabric knitted"
             value={`${(latest.knitting / 1000).toFixed(1)} t`}
             sublabel="today, vs 10 t capacity"
-            icon={Layers}
+            icon={PoppysKnittingIcon}
             tone="brand"
             to="/production/knitting"
           />
@@ -148,7 +173,7 @@ export function ProductionOverview() {
             label="Garments sewn"
             value={formatNumber(latest.sewing)}
             sublabel="vs 100,000 pcs capacity"
-            icon={Factory}
+            icon={PoppysSewingIcon}
             tone="info"
             to="/production/sewing"
           />
@@ -156,7 +181,7 @@ export function ProductionOverview() {
             label="Packed for export"
             value={formatNumber(latest.packing)}
             sublabel="ready for container stuffing"
-            icon={Activity}
+            icon={PoppysPackagingIcon}
             tone="success"
             to="/production/packing"
           />
@@ -270,61 +295,64 @@ export function ProductionOverview() {
             <Skeleton className="h-72 w-full" />
           ) : (
             <div className="space-y-2.5">
-              {routeTotals.map((stage, i) => (
-                <Link
-                  key={stage.key}
-                  to={stage.path}
-                  className="block rounded-lg border border-transparent px-3 py-2.5 transition-colors hover:border-border hover:bg-accent/40"
-                >
-                  <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2 text-xs">
-                    <span className="flex items-center gap-2">
-                      <span
-                        className="flex h-5 w-5 items-center justify-center rounded-md text-[10px] font-bold text-white"
-                        style={{ backgroundColor: colorAt(i) }}
-                      >
-                        {i + 1}
+              {routeTotals.map((stage, i) => {
+                const StageIcon = stageIconMap[stage.key] || PoppysProductionIcon
+                return (
+                  <Link
+                    key={stage.key}
+                    to={stage.path}
+                    className="group block rounded-lg border border-transparent px-3 py-2.5 transition-all hover:border-border hover:bg-accent/40"
+                  >
+                    <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2 text-xs">
+                      <span className="flex items-center gap-2.5">
+                        <span
+                          className="flex h-6 w-6 items-center justify-center rounded-md p-1 text-white shadow-xs transition-transform group-hover:scale-105"
+                          style={{ backgroundColor: colorAt(i) }}
+                        >
+                          <StageIcon className="h-full w-full" />
+                        </span>
+                        <span className="font-semibold text-foreground group-hover:text-brand-600 transition-colors">{stage.label}</span>
+                        <span className="hidden text-muted-foreground sm:inline">({stage.machines})</span>
                       </span>
-                      <span className="font-semibold text-foreground">{stage.label}</span>
-                      <span className="hidden text-muted-foreground sm:inline">({stage.machines})</span>
-                    </span>
-                    <div className="flex items-center gap-3">
-                      {stage.totalWipPcs > 0 && (
-                        <span className="text-[11px] text-muted-foreground">
-                          WIP in buffer:{' '}
-                          <span className={cn('font-medium', stage.hasAgingWip ? 'text-danger-600 font-bold' : 'text-foreground')}>
-                            {formatNumber(stage.totalWipPcs)} pcs {stage.hasAgingWip && '🔴'}
+                      <div className="flex items-center gap-3">
+                        {stage.totalWipPcs > 0 && (
+                          <span className="text-[11px] text-muted-foreground">
+                            WIP in buffer:{' '}
+                            <span className={cn('font-medium', stage.hasAgingWip ? 'text-danger-600 font-bold' : 'text-foreground')}>
+                              {formatNumber(stage.totalWipPcs)} pcs {stage.hasAgingWip && '🔴'}
+                            </span>
+                          </span>
+                        )}
+                        <span className="tabular-nums text-muted-foreground">
+                          {formatNumber(stage.output)} {stage.unitOfMeasure} of {formatNumber(stage.target)} -{' '}
+                          <span
+                            className={cn(
+                              'font-semibold',
+                              stage.achievementPct >= 92
+                                ? 'text-success-700'
+                                : stage.achievementPct >= 80
+                                  ? 'text-warning-700'
+                                  : 'text-danger-700',
+                            )}
+                          >
+                            {formatPct(stage.achievementPct)}
                           </span>
                         </span>
-                      )}
-                      <span className="tabular-nums text-muted-foreground">
-                        {formatNumber(stage.output)} {stage.unitOfMeasure} of {formatNumber(stage.target)} -{' '}
-                        <span
-                          className={cn(
-                            'font-semibold',
-                            stage.achievementPct >= 92
-                              ? 'text-success-700'
-                              : stage.achievementPct >= 80
-                                ? 'text-warning-700'
-                                : 'text-danger-700',
-                          )}
-                        >
-                          {formatPct(stage.achievementPct)}
-                        </span>
-                      </span>
+                      </div>
                     </div>
-                  </div>
-                  <Progress
-                    value={stage.achievementPct}
-                    indicatorClassName={
-                      stage.achievementPct >= 92
-                        ? 'bg-success-500'
-                        : stage.achievementPct >= 80
-                          ? 'bg-warning-500'
-                          : 'bg-danger-500'
-                    }
-                  />
-                </Link>
-              ))}
+                    <Progress
+                      value={stage.achievementPct}
+                      indicatorClassName={
+                        stage.achievementPct >= 92
+                          ? 'bg-success-500'
+                          : stage.achievementPct >= 80
+                            ? 'bg-warning-500'
+                            : 'bg-danger-500'
+                      }
+                    />
+                  </Link>
+                )
+              })}
             </div>
           )}
         </CardContent>
@@ -454,9 +482,12 @@ export function ProcessPage() {
     )
   }
 
+  const StageIcon = stageIconMap[stageKey] || PoppysProductionIcon
+
   return (
     <PageContainer>
       <PageHeader
+        icon={StageIcon}
         title={stage?.label ?? 'Production stage'}
         description={stage?.blurb}
         actions={
@@ -481,7 +512,7 @@ export function ProcessPage() {
             label="Output"
             value={`${formatNumber(detail.data.totalOutput)} ${stage.unitOfMeasure}`}
             sublabel="selected window"
-            icon={Layers}
+            icon={StageIcon}
             tone="brand"
           />
           <StatCard
@@ -802,6 +833,7 @@ export function ShopFloor() {
   return (
     <PageContainer>
       <PageHeader
+        icon={PoppysSewingIcon}
         title="24-Line Sewing Digital Twin & Execution Command Center"
         description="Deepest operational floor matrix combining 24 Lines, Hourly Run-Rate, SMV Efficiency, Operator Loading, DHU Defects, Cut-WIP Availability, and Export Order Risk."
         actions={

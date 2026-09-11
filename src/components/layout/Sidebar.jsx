@@ -87,7 +87,7 @@ export function Sidebar({ onNavigate }) {
                 onClick={onNavigate}
                 className={({ isActive }) =>
                   cn(
-                    'group relative flex shrink-0 items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium text-ink-200 transition-colors',
+                    'group relative flex shrink-0 items-center gap-3 rounded-lg px-3 py-2 text-[13.5px] font-medium text-ink-200 transition-colors',
                     'hover:bg-white/6 hover:text-white',
                     isActive && 'bg-white/10 font-semibold text-white',
                   )
@@ -96,11 +96,11 @@ export function Sidebar({ onNavigate }) {
                 {({ isActive }) => (
                   <>
                     {isActive && (
-                      <span className="absolute left-0 top-1/2 h-5 w-0.75 -translate-y-1/2 rounded-r-full bg-poppy-400" />
+                      <span className="absolute left-0 top-1/2 h-5.5 w-1 -translate-y-1/2 rounded-r-full bg-poppy-400" />
                     )}
                     <Icon
                       className={cn(
-                        'h-4 w-4 shrink-0 transition-colors',
+                        'h-5 w-5 shrink-0 transition-colors',
                         isActive ? 'text-poppy-300' : 'text-ink-300 group-hover:text-ink-100',
                       )}
                     />
@@ -131,7 +131,7 @@ export function Sidebar({ onNavigate }) {
                 onClick={() => toggleSection(section.label)}
                 aria-expanded={isOpen}
                 className={cn(
-                  'group flex shrink-0 w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-[13px] font-medium text-ink-200 transition-colors',
+                  'group flex shrink-0 w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-[13.5px] font-medium text-ink-200 transition-colors',
                   'hover:bg-white/6 hover:text-white',
                   sectionIsActive && 'text-white',
                   isAi && 'font-semibold text-white',
@@ -139,7 +139,7 @@ export function Sidebar({ onNavigate }) {
               >
                 <Icon
                   className={cn(
-                    'h-4 w-4 shrink-0 transition-colors',
+                    'h-5 w-5 shrink-0 transition-colors',
                     sectionIsActive ? 'text-poppy-300' : 'text-ink-300 group-hover:text-ink-100',
                     isAi && !sectionIsActive && 'text-brand-300',
                   )}
@@ -159,7 +159,7 @@ export function Sidebar({ onNavigate }) {
               </button>
 
               {isOpen && (
-                <div className="mb-1 ml-[1.65rem] mt-0.5 flex shrink-0 flex-col gap-0.5 border-l border-white/10 pl-3">
+                <div className="mb-1 ml-[1.85rem] mt-0.5 flex shrink-0 flex-col gap-0.5 border-l border-white/10 pl-3.5">
                   {section.children.map((child) => (
                     <NavLink
                       key={child.path}

@@ -1,19 +1,18 @@
 import {
-  Bot,
-  Boxes,
-  ClipboardList,
-  Factory,
-  Gauge,
-  LayoutDashboard,
-  Leaf,
-  Package,
-  Palette,
-  Settings,
-  ShieldCheck,
-  ShoppingCart,
-  Wrench,
-  Zap,
-} from 'lucide-react'
+  PoppysDashboardIcon,
+  PoppysAiIcon,
+  PoppysSalesIcon,
+  PoppysMerchIcon,
+  PoppysPlanningIcon,
+  PoppysProcurementIcon,
+  PoppysInventoryIcon,
+  PoppysProductionIcon,
+  PoppysQualityIcon,
+  PoppysMaintenanceIcon,
+  PoppysEnergyIcon,
+  PoppysMasterDataIcon,
+  PoppysAdminIcon,
+} from '@/components/icons'
 
 /**
  * Navigation covers only what Poppys Knitwear actually operates per the public
@@ -31,10 +30,10 @@ import {
 export const AI_SECTION_LABEL = 'Poppys AI'
 
 export const navTree = [
-  { label: 'Dashboard', icon: LayoutDashboard, path: '/' },
+  { label: 'Dashboard', icon: PoppysDashboardIcon, path: '/' },
   {
     label: AI_SECTION_LABEL,
-    icon: Bot,
+    icon: PoppysAiIcon,
     children: [
       { label: 'AI Copilot', path: '/ai' },
       { label: 'Insights & Anomalies', path: '/ai/insights' },
@@ -45,7 +44,7 @@ export const navTree = [
   },
   {
     label: 'Sales & Export',
-    icon: ShoppingCart,
+    icon: PoppysSalesIcon,
     children: [
       { label: 'Buyers', path: '/sales/buyers' },
       { label: 'Export Orders', path: '/sales/export-orders' },
@@ -55,7 +54,7 @@ export const navTree = [
   },
   {
     label: 'Merchandising',
-    icon: Palette,
+    icon: PoppysMerchIcon,
     children: [
       { label: 'Style Library', path: '/merch/styles' },
       { label: 'Sampling', path: '/merch/sampling' },
@@ -64,7 +63,7 @@ export const navTree = [
   },
   {
     label: 'Planning',
-    icon: ClipboardList,
+    icon: PoppysPlanningIcon,
     children: [
       { label: 'Production Orders', path: '/planning/production-orders' },
       { label: 'Capacity Planning', path: '/planning/capacity' },
@@ -72,7 +71,7 @@ export const navTree = [
   },
   {
     label: 'Procurement',
-    icon: Package,
+    icon: PoppysProcurementIcon,
     children: [
       { label: 'Overview', path: '/procurement' },
       { label: 'Suppliers', path: '/procurement/suppliers' },
@@ -83,7 +82,7 @@ export const navTree = [
   },
   {
     label: 'Inventory',
-    icon: Boxes,
+    icon: PoppysInventoryIcon,
     children: [
       { label: 'Overview', path: '/inventory' },
       { label: 'Yarn Store', path: '/inventory/yarn' },
@@ -95,7 +94,7 @@ export const navTree = [
   },
   {
     label: 'Production',
-    icon: Factory,
+    icon: PoppysProductionIcon,
     children: [
       { label: 'Overview', path: '/production' },
       { label: 'Knitting', path: '/production/knitting' },
@@ -111,7 +110,7 @@ export const navTree = [
   },
   {
     label: 'Quality Management',
-    icon: ShieldCheck,
+    icon: PoppysQualityIcon,
     children: [
       { label: 'Dashboard', path: '/quality' },
       { label: 'Lab Tests', path: '/quality/lab-tests' },
@@ -124,7 +123,7 @@ export const navTree = [
   },
   {
     label: 'Maintenance',
-    icon: Wrench,
+    icon: PoppysMaintenanceIcon,
     children: [
       { label: 'Machine Dashboard', path: '/maintenance' },
       { label: 'Preventive Maintenance', path: '/maintenance/pm' },
@@ -132,11 +131,11 @@ export const navTree = [
       { label: 'Spare Parts', path: '/maintenance/spare-parts' },
     ],
   },
-  { label: 'Energy & Utilities', icon: Zap, path: '/energy' },
-  // { label: 'Compliance & CSR', icon: Leaf, path: '/compliance' },
+  { label: 'Energy & Utilities', icon: PoppysEnergyIcon, path: '/energy' },
+  // { label: 'Compliance & CSR', icon: PoppysComplianceIcon, path: '/compliance' },
   {
     label: 'Master Data',
-    icon: Gauge,
+    icon: PoppysMasterDataIcon,
     children: [
       { label: 'Styles', path: '/master/styles' },
       { label: 'Buyers', path: '/master/buyers' },
@@ -147,7 +146,7 @@ export const navTree = [
       { label: 'Ports & Logistics', path: '/master/ports' },
     ],
   },
-  { label: 'Administration', icon: Settings, path: '/admin' },
+  { label: 'Administration', icon: PoppysAdminIcon, path: '/admin' },
 ]
 
 /** Flattened for global search and breadcrumbs. */

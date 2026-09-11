@@ -54,7 +54,7 @@ export async function createStyleBomRevision(styleId, changeReason, createdBy = 
   return simulateDelay(style)
 }
 
-export async function approveStyleBomRevision(styleId, revisionId, approverName = 'Dr. C. Sakthivel') {
+export async function approveStyleBomRevision(styleId, revisionId, approverName = 'Sakthivel') {
   const style = styleById.get(styleId) || styles.find((s) => s.id === styleId)
   if (!style) throw new Error(`Style ${styleId} not found`)
 

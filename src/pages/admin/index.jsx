@@ -54,6 +54,7 @@ import { DataTable, StatusBadge } from '@/components/tables'
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Input, Modal, Select } from '@/components/ui'
 import { formatDate, formatNumber } from '@/lib/format'
 import { cn } from '@/lib/utils'
+import { PoppysAdminIcon } from '@/components/icons'
 
 export function Administration() {
   const { userRole, setUserRole, canAccess } = useAppStore()
@@ -106,6 +107,7 @@ export function Administration() {
       <PageHeader
         title="Enterprise Administration & Governance"
         description="Unified governance plane: Persona switching, 14-module RBAC permissions, immutable audit logs, multi-unit plant directory, and system health telemetry."
+        icon={PoppysAdminIcon}
       >
         <div className="flex items-center gap-2">
           <Badge variant={currentPersona.tone === 'brand' ? 'brand' : currentPersona.tone === 'poppy' ? 'poppy' : 'info'} className="px-3 py-1 text-xs">

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Calculator, CheckCircle2, Clock, Palette, Percent, Shirt, TrendingDown } from 'lucide-react'
+import { PoppysMerchIcon, PoppysStyleLibraryIcon, PoppysSamplingIcon, PoppysCostingIcon } from '@/components/icons'
 
 import { useAsync } from '@/hooks/useAsync'
 import { getCostSheets, getSamples, getStyles } from '@/services'
@@ -32,6 +33,7 @@ export function StyleLibrary() {
   return (
     <PageContainer>
       <PageHeader
+        icon={PoppysStyleLibraryIcon}
         title="Style Library"
         description="Every style across men's, women's, boys, girls, infants and inners, with its fabric, decoration and approval state."
       />
@@ -124,6 +126,7 @@ export function Sampling() {
   return (
     <PageContainer>
       <PageHeader
+        icon={PoppysSamplingIcon}
         title="Sampling"
         description="The gate every style must clear before bulk is released: proto, fit, size set, pre-production, photoshoot and shipment sample."
       />
@@ -273,6 +276,7 @@ export function Costing() {
   return (
     <PageContainer>
       <PageHeader
+        icon={PoppysCostingIcon}
         title="Costing"
         description="Cost sheets built the way a Tirupur costing desk builds them: fabric, CMT, trims, decoration and overhead against the quoted FOB."
       />
